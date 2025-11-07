@@ -1,104 +1,66 @@
-# CRM App (MERN Stack)
+📊 CRM App – 顧客管理アプリ（MERN Stack）
 
-顧客管理 (CRM) を目的とした Web アプリケーションです。  
-顧客・案件・タスク・活動履歴・通知を一元管理できるように設計されています。
+🔗 デプロイURL
+https://crm-app.onrender.com
 
----
+※スマートフォン・PCの両方に対応しています。
 
-## 📸 スクリーンショット
+🔑 テストログイン
+Email: test@gmail.com
 
-> 以下はアプリの画面イメージです。適宜、`/screenshots` フォルダに画像を保存し、パスを変更してください。
+Password: test
 
-### 顧客一覧ページ
+📸 スクリーンショット
 
-![顧客一覧](./screenshots/customers.png)
+顧客一覧ページ
 
-### 顧客詳細ページ
 
-![顧客詳細](./screenshots/customer-detail.png)
+顧客詳細ページ
 
-### 通知ドロップダウン
 
-![通知](./screenshots/notifications.png)
+通知ドロップダウン
 
----
 
-## 🚀 主な機能
+📝 アプリ概要
 
-- 🔐 **認証機能**
-  - JWT ベースのログイン / ログアウト
-  - 管理者と一般ユーザーの権限分け
-- 👥 **顧客管理**
-  - 顧客リストの表示・検索
-  - 顧客詳細ページで案件・タスク・履歴を統合表示
-- 📊 **案件 / タスク管理**
-  - 顧客に紐づく案件とタスクを一覧管理
-  - Kanban ボードで進捗管理
-- 🔔 **通知機能**
-  - Navbar から未読通知を確認可能
-  - ドロップダウンでリアルタイム更新
-- 📈 **ダッシュボード**
-  - 売上や進捗をチャートで可視化
+このアプリは、顧客・案件・タスク・活動履歴・通知を一元管理できるCRM（顧客管理）Webアプリです。
+日々の営業活動や顧客対応の可視化・効率化を目的としています。
 
----
+🔧 使用技術
 
-## 🛠 使用技術
+フロントエンド：React, Vite, Tailwind CSS, React Router
 
-- **フロントエンド**: React, Vite, Tailwind CSS, React Router
-- **状態管理 / 認証**: Context API, Firebase (認証・通知), JWT
-- **UI / ライブラリ**: FontAwesome, Chart.js, react-toastify, @hello-pangea/dnd
-- **バックエンド**: Node.js, Express, MongoDB (別リポジトリ)
-- **デプロイ**: Vercel / Render など想定
+状態管理 / 認証：Context API, Firebase（認証・通知）, JWT
 
----
+UI / ライブラリ：FontAwesome, Chart.js, react-toastify, @hello-pangea/dnd
 
-## ⚙️ セットアップ手順
+バックエンド：Node.js, Express, MongoDB（別リポジトリ）
 
-```bash
-# リポジトリをクローン
-git clone https://github.com/your-username/mern-crm-app.git
-cd mern-crm-app
+ホスティング：Vercel, Render
 
-# フロントエンドをセットアップ
-cd frontend
-npm install
+✨ 主な機能
 
-# 開発サーバーを起動
-npm run dev
-バックエンドについては別リポジトリで管理しています。
-.env ファイルには以下のような変数を設定してください：
+🔐 JWTベースのログイン / ログアウト（管理者・一般ユーザー権限）
 
-env
-Copy code
-VITE_API_URL=http://localhost:5000/api
-VITE_FIREBASE_API_KEY=xxxxxxxx
-📂 ディレクトリ構成 (フロントエンド)
-plaintext
-Copy code
-src/
-├── components/        # 再利用可能なUIコンポーネント
-│   ├── Navbar.jsx
-│   ├── NotificationList.jsx
-│   └── ...
-├── pages/             # 各ページ
-│   ├── CustomerPage.jsx
-│   ├── CustomerDetailPage.jsx
-│   └── ...
-├── context/           # 認証 / 通知などのContext
-├── services/          # API呼び出し関連
-└── App.jsx
-👨‍💻 開発者向けメモ
-ESLint + Prettier によりコードスタイルを統一
+👥 顧客一覧・検索・詳細ページで案件や履歴を統合表示
 
-Tailwind でレスポンシブ対応済み
+📊 Kanbanボードによる案件 / タスク進捗管理
 
-将来的に PWA 対応も検討可能
+🔔 Navbarから未読通知をリアルタイム確認
 
-📜 ライセンス
-このプロジェクトは MIT ライセンスの下で公開されています。
+📈 売上・進捗をチャートで可視化するダッシュボード
 
-yaml
-Copy code
+💡 工夫した点
 
----
-```
+Context APIで認証・通知などの状態を一元管理
+
+Chart.jsを活用したデータ可視化設計
+
+Tailwindによる統一感のあるレスポンシブUI
+
+ESLint + Prettierでのコードスタイル統一
+
+👤 作者
+
+PiyoCode324
+GitHub: https://github.com/PiyoCode324
