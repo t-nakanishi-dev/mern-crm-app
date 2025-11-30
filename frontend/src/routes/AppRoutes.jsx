@@ -3,41 +3,53 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
-// 公開ページ
-import Login from "../pages/Login";
-import Register from "../pages/Register";
-import FreeContactPage from "../pages/FreeContactPage";
-import PasswordReset from "../components/PasswordReset";
+// =========================
+// 公開ページ（認証不要）
+// =========================
+import Login from "../pages/Login"; // ログインページ
+import Register from "../pages/Register"; // ユーザー登録ページ
+import FreeContactPage from "../pages/FreeContactPage"; // お問い合わせフォーム（未ログインでもアクセス可能）
+import PasswordReset from "../components/PasswordReset"; // パスワードリセットフォーム
 
-// 一般ユーザー用ページ
-import Dashboard from "../pages/Dashboard";
-import ProfilePage from "../pages/ProfilePage";
-import CustomerPage from "../pages/CustomerPage";
-import CustomerDetailPage from "../pages/CustomerDetailPage";
-import ContactsPage from "../pages/ContactsPage";
-import ContactForm from "../components/ContactForm";
-import SalesPage from "../pages/SalesPage";
-import SalesDetailPage from "../pages/SalesDetailPage";
-import TasksPage from "../pages/TasksPage";
-import KanbanBoard from "../components/Kanban/KanbanBoard";
+// =========================
+// 一般ユーザー用ページ（ログイン必須）
+// =========================
+import Dashboard from "../pages/Dashboard"; // ダッシュボード
+import ProfilePage from "../pages/ProfilePage"; // プロフィール編集ページ
+import CustomerPage from "../pages/CustomerPage"; // 顧客一覧ページ
+import CustomerDetailPage from "../pages/CustomerDetailPage"; // 顧客詳細ページ
+import ContactsPage from "../pages/ContactsPage"; // 連絡先一覧ページ
+import ContactForm from "../components/ContactForm"; // 連絡先作成フォーム
+import SalesPage from "../pages/SalesPage"; // 営業案件一覧ページ
+import SalesDetailPage from "../pages/SalesDetailPage"; // 営業案件詳細ページ
+import TasksPage from "../pages/TasksPage"; // タスク一覧ページ
+import KanbanBoard from "../components/Kanban/KanbanBoard"; // カンバンボード表示コンポーネント
 
-// 管理者用ページ
-import AdminUserPage from "../pages/AdminUserPage";
-import AdminUserDetailPage from "../pages/AdminUserDetailPage";
+// =========================
+// 管理者用ページ（adminOnly）
+// =========================
+import AdminUserPage from "../pages/AdminUserPage"; // ユーザー管理ページ
+import AdminUserDetailPage from "../pages/AdminUserDetailPage"; // ユーザー詳細ページ
 
-// コンポーネント
-import ProtectedRoute from "../components/ProtectedRoute";
+// =========================
+// 共通コンポーネント
+// =========================
+import ProtectedRoute from "../components/ProtectedRoute"; // ログイン必須/管理者専用ページ制御用ラッパー
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* 公開ページ */}
+      {/* =========================
+          公開ページ（ログイン不要）
+      ========================= */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/contact-form" element={<FreeContactPage />} />
       <Route path="/password-reset" element={<PasswordReset />} />
 
-      {/* ログイン必須ページ */}
+      {/* =========================
+          ログイン必須ページ
+      ========================= */}
       <Route
         path="/"
         element={
@@ -135,7 +147,9 @@ const AppRoutes = () => {
         }
       />
 
-      {/* 管理者専用ページ */}
+      {/* =========================
+          管理者専用ページ（adminOnly=true）
+      ========================= */}
       <Route
         path="/admin/users"
         element={
