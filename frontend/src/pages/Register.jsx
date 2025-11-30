@@ -54,9 +54,8 @@ function Register() {
       // バックエンドにユーザー登録
       await registerUserInBackend(idToken, userData);
 
-      // 登録後はログアウト状態にしてログイン画面へ遷移
-      await auth.signOut();
-      navigate("/login");
+      // ✅ 自動でダッシュボードへ遷移
+      navigate("/dashboard");
     } catch (error) {
       console.error("❌ Firebase 登録エラー:", error);
       setError(error.message); // エラー表示

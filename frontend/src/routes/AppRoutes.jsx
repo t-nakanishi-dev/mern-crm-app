@@ -1,44 +1,50 @@
 // src/routes/AppRoutes.jsx
 
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 // =========================
 // 公開ページ（認証不要）
 // =========================
-import Login from "../pages/Login"; // ログインページ
-import Register from "../pages/Register"; // ユーザー登録ページ
-import FreeContactPage from "../pages/FreeContactPage"; // お問い合わせフォーム（未ログインでもアクセス可能）
-import PasswordReset from "../components/PasswordReset"; // パスワードリセットフォーム
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import FreeContactPage from "../pages/FreeContactPage";
+import PasswordReset from "../components/PasswordReset";
+import LandingPage from "../pages/Landing"; // ランディングページ追加
 
 // =========================
 // 一般ユーザー用ページ（ログイン必須）
 // =========================
-import Dashboard from "../pages/Dashboard"; // ダッシュボード
-import ProfilePage from "../pages/ProfilePage"; // プロフィール編集ページ
-import CustomerPage from "../pages/CustomerPage"; // 顧客一覧ページ
-import CustomerDetailPage from "../pages/CustomerDetailPage"; // 顧客詳細ページ
-import ContactsPage from "../pages/ContactsPage"; // 連絡先一覧ページ
-import ContactForm from "../components/ContactForm"; // 連絡先作成フォーム
-import SalesPage from "../pages/SalesPage"; // 営業案件一覧ページ
-import SalesDetailPage from "../pages/SalesDetailPage"; // 営業案件詳細ページ
-import TasksPage from "../pages/TasksPage"; // タスク一覧ページ
-import KanbanBoard from "../components/Kanban/KanbanBoard"; // カンバンボード表示コンポーネント
+import Dashboard from "../pages/Dashboard";
+import ProfilePage from "../pages/ProfilePage";
+import CustomerPage from "../pages/CustomerPage";
+import CustomerDetailPage from "../pages/CustomerDetailPage";
+import ContactsPage from "../pages/ContactsPage";
+import ContactForm from "../components/ContactForm";
+import SalesPage from "../pages/SalesPage";
+import SalesDetailPage from "../pages/SalesDetailPage";
+import TasksPage from "../pages/TasksPage";
+import KanbanBoard from "../components/Kanban/KanbanBoard";
 
 // =========================
 // 管理者用ページ（adminOnly）
 // =========================
-import AdminUserPage from "../pages/AdminUserPage"; // ユーザー管理ページ
-import AdminUserDetailPage from "../pages/AdminUserDetailPage"; // ユーザー詳細ページ
+import AdminUserPage from "../pages/AdminUserPage";
+import AdminUserDetailPage from "../pages/AdminUserDetailPage";
 
 // =========================
 // 共通コンポーネント
 // =========================
-import ProtectedRoute from "../components/ProtectedRoute"; // ログイン必須/管理者専用ページ制御用ラッパー
+import ProtectedRoute from "../components/ProtectedRoute";
 
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* =========================
+          ランディングページ（未ログインなら表示、ログイン済みなら Dashboard に自動遷移）
+      ========================= */}
+      <Route path="/" element={<LandingPage />} />
+
       {/* =========================
           公開ページ（ログイン不要）
       ========================= */}
@@ -50,14 +56,6 @@ const AppRoutes = () => {
       {/* =========================
           ログイン必須ページ
       ========================= */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
       <Route
         path="/dashboard"
         element={
@@ -166,6 +164,11 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* =========================
+          未定義のパスはホームへリダイレクト
+      ========================= */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
