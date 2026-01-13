@@ -11,6 +11,7 @@ const AdminUserPage = () => {
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [message, setMessage] = useState(null); // 成功/注意メッセージ用
 
   const fetchUsers = async (searchQuery = "") => {
     try {
@@ -19,7 +20,7 @@ const AdminUserPage = () => {
         ? `/users/all?search=${searchQuery}`
         : "/users/all";
       const response = await authorizedRequest("GET", url);
-      setUsers(response.users);
+      setUsers(response.users || []);
     } catch (err) {
       console.error("ユーザー情報の取得に失敗しました:", err);
       setError("ユーザー情報の取得に失敗しました。");
@@ -32,57 +33,67 @@ const AdminUserPage = () => {
     fetchUsers(searchTerm);
   };
 
-  // ✅ 修正: alert()やwindow.confirm()は使用せず、カスタムUIを使うべきです。
+  const showMessage = (text, isError = false) => {
+    setMessage({ text, isError });
+    setTimeout(() => setMessage(null), 8000); // 8秒後に自動消去
+  };
+
   const handleToggleRole = async (targetUid, currentRole) => {
     if (user.uid === targetUid) {
-      console.log("自分の役割は変更できません。");
-      // TODO: カスタムUIでメッセージを表示する
+      showMessage("自分の役割は変更できません。", true);
       return;
     }
+
     const newRole = currentRole === "admin" ? "user" : "admin";
-    // TODO: カスタムUIで確認ダイアログを表示する
-    if (!window.confirm(`このユーザーの役割を '${newRole}' に変更しますか？`))
+
+    if (!window.confirm(`このユーザーの役割を「${newRole}」に変更しますか？`)) {
       return;
+    }
 
     try {
       await authorizedRequest("PUT", `/users/${targetUid}/role`, {
         role: newRole,
       });
+
       await fetchUsers(searchTerm);
-      // TODO: カスタムUIで成功メッセージを表示する
-      console.log("役割が正常に更新されました。");
+      showMessage(
+        `役割を「${newRole}」に変更しました。\n\n` +
+          `変更が完全に反映されるには、対象ユーザーが一度ログアウトして再度ログインする必要があります。`
+      );
     } catch (err) {
-      console.error("役割の更新に失敗しました:", err);
-      // TODO: カスタムUIでエラーメッセージを表示する
-      console.log("役割の更新に失敗しました。管理者権限を確認してください。");
+      console.error("役割更新エラー:", err);
+      const errorMsg =
+        err.response?.data?.message ||
+        "役割の更新に失敗しました。権限を確認してください。";
+      showMessage(errorMsg, true);
     }
   };
 
-  // ✅ 修正: alert()やwindow.confirm()は使用せず、カスタムUIを使うべきです。
   const handleToggleDisabled = async (targetUid, isDisabled) => {
     if (user.uid === targetUid) {
-      console.log("自分のアカウントを無効化することはできません。");
-      // TODO: カスタムUIでメッセージを表示する
+      showMessage("自分のアカウントを無効化することはできません。", true);
       return;
     }
+
     const newDisabledStatus = !isDisabled;
     const action = newDisabledStatus ? "無効化" : "有効化";
-    // TODO: カスタムUIで確認ダイアログを表示する
-    if (!window.confirm(`このユーザーアカウントを${action}しますか？`)) return;
+
+    if (!window.confirm(`このユーザーアカウントを${action}しますか？`)) {
+      return;
+    }
 
     try {
       await authorizedRequest("PUT", `/users/${targetUid}/disabled`, {
         disabled: newDisabledStatus,
       });
+
       await fetchUsers(searchTerm);
-      // TODO: カスタムUIで成功メッセージを表示する
-      console.log(`アカウントが正常に${action}されました。`);
+      showMessage(`アカウントを${action}しました。`);
     } catch (err) {
-      console.error("アカウント状態の更新に失敗しました:", err);
-      // TODO: カスタムUIでエラーメッセージを表示する
-      console.log(
-        "アカウント状態の更新に失敗しました。管理者権限を確認してください。"
-      );
+      console.error("アカウント状態更新エラー:", err);
+      const errorMsg =
+        err.response?.data?.message || "アカウント状態の更新に失敗しました。";
+      showMessage(errorMsg, true);
     }
   };
 
@@ -116,6 +127,20 @@ const AdminUserPage = () => {
       <h1 className="text-3xl font-bold mb-6 text-gray-800 text-center">
         ユーザー管理
       </h1>
+
+      {/* 操作結果メッセージ */}
+      {message && (
+        <div
+          className={`mb-6 p-4 rounded-lg text-center ${
+            message.isError
+              ? "bg-red-100 border border-red-400 text-red-700"
+              : "bg-green-100 border border-green-400 text-green-700"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
       <div className="flex justify-center mb-6">
         <input
           type="text"
@@ -132,6 +157,7 @@ const AdminUserPage = () => {
           検索
         </button>
       </div>
+
       <div className="bg-white shadow-md rounded-lg overflow-x-auto mb-8">
         <table className="min-w-full leading-normal">
           <thead>
@@ -156,7 +182,6 @@ const AdminUserPage = () => {
                   <td className="py-3 px-6 text-left whitespace-nowrap">
                     {item._id}
                   </td>
-                  {/* ✅ 修正: 表示名のみにリンクを付け、他は削除 */}
                   <td className="py-3 px-6 text-left">
                     <Link
                       to={`/admin/users/${item.uid}`}
@@ -166,7 +191,13 @@ const AdminUserPage = () => {
                     </Link>
                   </td>
                   <td className="py-3 px-6 text-left">{item.email}</td>
-                  <td className="py-3 px-6 text-left">{item.role}</td>
+                  <td className="py-3 px-6 text-left font-medium">
+                    {item.role === "admin" ? (
+                      <span className="text-purple-600 font-bold">管理者</span>
+                    ) : (
+                      "一般ユーザー"
+                    )}
+                  </td>
                   <td className="py-3 px-6 text-center">
                     <span
                       className={`font-bold py-1 px-3 rounded-full text-xs ${
@@ -179,7 +210,7 @@ const AdminUserPage = () => {
                     </span>
                   </td>
                   <td className="py-3 px-6 text-center">
-                    <div className="flex item-center justify-center space-x-2">
+                    <div className="flex items-center justify-center space-x-3">
                       <button
                         onClick={() => handleToggleRole(item.uid, item.role)}
                         className={`font-bold py-2 px-4 rounded-full text-xs transition duration-200 ease-in-out transform hover:scale-105 ${
@@ -189,7 +220,7 @@ const AdminUserPage = () => {
                         }`}
                       >
                         {item.role === "admin"
-                          ? "ユーザーにする"
+                          ? "一般ユーザーにする"
                           : "管理者にする"}
                       </button>
                       <button
@@ -199,7 +230,7 @@ const AdminUserPage = () => {
                         className={`font-bold py-2 px-4 rounded-full text-xs transition duration-200 ease-in-out transform hover:scale-105 ${
                           item.disabled
                             ? "bg-green-500 text-white hover:bg-green-700"
-                            : "bg-gray-500 text-white hover:bg-gray-700"
+                            : "bg-gray-600 text-white hover:bg-gray-800"
                         }`}
                       >
                         {item.disabled ? "有効化" : "無効化"}
@@ -218,6 +249,7 @@ const AdminUserPage = () => {
           </tbody>
         </table>
       </div>
+
       <ActivityLog />
     </div>
   );

@@ -1,10 +1,10 @@
 // src/pages/Login.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/config";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // ← これを追加！
 
-// 簡易ログ関数
 const addLog = (msg) => {
   console.log(`[Login] ${msg}`);
 };
@@ -14,6 +14,15 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { user, loading, isAuthReady } = useAuth(); // ← AuthContext から状態を取得
+
+  // ログイン成功後に user がセットされたら自動遷移
+  useEffect(() => {
+    if (user && !loading && isAuthReady) {
+      addLog("AuthContext の状態が更新された → ダッシュボードへ自動遷移");
+      navigate("/dashboard", { replace: true }); // replace で戻る履歴を残さない
+    }
+  }, [user, loading, isAuthReady, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,7 +31,6 @@ export default function Login() {
     try {
       addLog("ログイン処理開始");
 
-      // Firebaseでログイン
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -31,20 +39,16 @@ export default function Login() {
       const user = userCredential.user;
       addLog(`ログイン成功: UID=${user.uid}`);
 
-      // トークン取得
       const token = await user.getIdToken();
       addLog(`IDトークンを取得しました: ${token.substring(0, 20)}...`);
 
-      // localStorage に保存
       localStorage.setItem("token", token);
       addLog("IDトークンをlocalStorageに保存しました");
 
-      // ダッシュボードへ
-      navigate("/dashboard");
-      addLog("ダッシュボードへ遷移しました");
+      // ここでは navigate を呼ばない！（useEffect で待つ）
     } catch (err) {
       console.error("ログインエラー詳細:", err);
-      setError("ログインに失敗しました");
+      setError("ログインに失敗しました: " + (err.message || "不明なエラー"));
     }
   };
 

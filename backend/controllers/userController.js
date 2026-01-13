@@ -95,14 +95,11 @@ const getUsers = asyncHandler(async (req, res) => {
   res.json(formattedUsers);
 });
 
-// ✅ 修正: 管理者専用：すべてのユーザーを取得するコントローラー
-// 検索機能を追加
+// ✅ 管理者専用：すべてのユーザーを取得するコントローラー（検索対応）
 const getAllUsers = asyncHandler(async (req, res) => {
-  // クエリパラメータから検索キーワードを取得
   const { search } = req.query;
   const query = {};
 
-  // 検索キーワードがあれば、メールアドレスまたは表示名で部分一致検索を行う
   if (search) {
     query.$or = [
       { email: { $regex: search, $options: "i" } },
@@ -115,7 +112,6 @@ const getAllUsers = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "ユーザーが見つかりません。" });
   }
 
-  // Firebaseのユーザー情報も取得し、MongoDBの情報と結合
   const usersWithFirebaseInfo = await Promise.all(
     users.map(async (user) => {
       try {
@@ -127,7 +123,6 @@ const getAllUsers = asyncHandler(async (req, res) => {
           disabled: firebaseUser.disabled,
         };
       } catch (error) {
-        // Firebaseに存在しないユーザーの場合のエラーハンドリング
         console.error(`Firebaseユーザー取得エラー (UID: ${user.uid}):`, error);
         return { ...user.toObject(), disabled: true, firebaseError: true };
       }
@@ -147,25 +142,56 @@ const getUsersBasic = asyncHandler(async (req, res) => {
   }
 });
 
-// ✅ 新しい関数：ユーザーの役割を更新
+// ✅ 修正済み：ユーザーの役割を更新（MongoDB + Firebase Custom Claims 両方）
 const updateUserRole = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params; // uid
   const { role } = req.body;
 
-  const user = await User.findOne({ uid: id });
-
-  if (!user) {
-    res.status(404);
-    throw new Error("ユーザーが見つかりません。");
+  if (!["admin", "user"].includes(role)) {
+    res.status(400);
+    throw new Error(
+      "無効な役割です。'admin' または 'user' を指定してください。"
+    );
   }
 
-  user.role = role;
-  await user.save();
+  try {
+    // 1. Firebase Custom Claims を更新（← これが抜けていた！）
+    await admin.auth().setCustomUserClaims(id, { role });
+    console.log(
+      `[updateUserRole] Custom Claims 更新成功: UID=${id} → role=${role}`
+    );
 
-  res.status(200).json({ message: "ユーザーの役割が更新されました。", user });
+    // 設定確認ログ（デバッグ用・後で削除可）
+    const updatedFirebaseUser = await admin.auth().getUser(id);
+    console.log(
+      "[updateUserRole] 更新後のClaims:",
+      updatedFirebaseUser.customClaims
+    );
+
+    // 2. MongoDB の role を更新
+    const user = await User.findOneAndUpdate(
+      { uid: id },
+      { role },
+      { new: true }
+    );
+
+    if (!user) {
+      res.status(404);
+      throw new Error("MongoDBにユーザーが見つかりません。");
+    }
+
+    res.status(200).json({
+      message: `役割を ${role} に更新しました（Firebase Claims & MongoDB）`,
+      user,
+    });
+  } catch (error) {
+    console.error("[updateUserRole] エラー:", error.code || error.message);
+    res.status(500);
+    throw new Error(`役割更新に失敗しました: ${error.message}`);
+  }
 });
 
-// ✅ 新規: ユーザーの有効化/無効化を切り替える関数
+// ✅ ユーザーの有効化/無効化を切り替える関数（既にFirebase対応済み）
 const toggleUserDisabledStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { disabled } = req.body;
@@ -179,6 +205,11 @@ const toggleUserDisabledStatus = asyncHandler(async (req, res) => {
 
   try {
     await admin.auth().updateUser(id, { disabled: disabled });
+    console.log(
+      `[toggleUserDisabledStatus] アカウント${
+        disabled ? "無効化" : "有効化"
+      }成功: UID=${id}`
+    );
 
     res.status(200).json({
       message: `ユーザーアカウントは正常に${
@@ -186,18 +217,20 @@ const toggleUserDisabledStatus = asyncHandler(async (req, res) => {
       }されました。`,
     });
   } catch (error) {
-    console.error("ユーザーの有効化/無効化に失敗しました:", error);
-    return res
+    console.error("[toggleUserDisabledStatus] エラー:", error);
+    res
       .status(500)
-      .json({ message: "ユーザーの有効化/無効化に失敗しました。" });
+      .json({
+        message: "ユーザーの有効化/無効化に失敗しました。",
+        error: error.message,
+      });
   }
 });
 
-// ✅ 新規: 特定のユーザー情報を取得する関数
+// ✅ 特定のユーザー情報を取得する関数
 const getUserById = asyncHandler(async (req, res) => {
-  const { id } = req.params; // URLからFirebase UIDを取得
+  const { id } = req.params;
 
-  // MongoDBからユーザー情報を検索
   const user = await User.findOne({ uid: id }).select("-password");
 
   if (!user) {
@@ -206,10 +239,8 @@ const getUserById = asyncHandler(async (req, res) => {
   }
 
   try {
-    // Firebase Admin SDK を使ってユーザーの無効化状態を取得
     const firebaseUser = await admin.auth().getUser(id);
 
-    // MongoDBとFirebaseの情報を結合
     const userWithFirebaseInfo = {
       ...user.toObject(),
       uid: firebaseUser.uid,
@@ -234,5 +265,5 @@ module.exports = {
   getUsersBasic,
   updateUserRole,
   toggleUserDisabledStatus,
-  getUserById, // ✅ ここを追加
+  getUserById,
 };

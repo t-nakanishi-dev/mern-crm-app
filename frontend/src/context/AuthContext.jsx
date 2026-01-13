@@ -17,26 +17,45 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       console.log("🔄 onAuthStateChanged fired:", currentUser);
+
       if (currentUser) {
         try {
-          // IDトークンとカスタムクレームを取得
-          const idToken = await currentUser.getIdToken();
-          const idTokenResult = await currentUser.getIdTokenResult();
+          // ★強化ポイント1★ まずトークンを強制的に更新（古いトークンを破棄）
+          await currentUser.getIdToken(true);
+          console.log("✅ トークン強制リフレッシュ完了（Custom Claims反映用）");
+
+          // ★強化ポイント2★ 更新されたトークンから最新のclaimsを取得
+          const idTokenResult = await currentUser.getIdTokenResult(true);
           const claims = idTokenResult.claims;
+          const freshIdToken = idTokenResult.token;
+
+          // デバッグ用：全 claims を出力（本当に role が入っているか確認）
+          console.log(
+            "🔥 最新の全 Custom Claims:",
+            JSON.stringify(claims, null, 2)
+          );
+
+          // isAdmin の判定（複数の形式に対応）
+          const adminClaim =
+            claims?.role === "admin" ||
+            claims?.admin === true ||
+            claims?.admin === "true" ||
+            claims?.admin === 1;
 
           setUser(currentUser);
-          console.log("Current token:", idToken);
-          setToken(idToken);
-          setIsAdmin(claims?.role === "admin");
+          setToken(freshIdToken);
+          setIsAdmin(!!adminClaim); // booleanに変換
 
           console.log("✅ AuthContext: ユーザーがログインしました", {
             uid: currentUser.uid,
-            isAdmin: claims?.role === "admin",
+            displayName: currentUser.displayName,
+            email: currentUser.email,
+            isAdmin: adminClaim,
             claims,
           });
         } catch (error) {
           console.error(
-            "❌ AuthContext: IDトークンの取得に失敗しました",
+            "❌ AuthContext: IDトークン/claims の取得に失敗しました",
             error
           );
           setUser(null);
@@ -49,6 +68,7 @@ const AuthProvider = ({ children }) => {
         setIsAdmin(false);
         console.log("❌ AuthContext: ユーザーはログアウトしました");
       }
+
       setLoading(false);
       setIsAuthReady(true);
       console.log("loading:", false, "isAuthReady:", true);
@@ -92,6 +112,7 @@ const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// registerUserInBackend（変更なし）
 const registerUserInBackend = async (idToken, userData) => {
   try {
     console.log("🚀 バックエンドへの登録開始:", userData);

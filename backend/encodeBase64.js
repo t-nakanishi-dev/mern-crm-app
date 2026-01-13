@@ -1,6 +1,7 @@
+// backend/encodeBase64.js
 const fs = require("fs");
 
-const filePath = "./firebaseServiceAccountKey.json"; // ファイルパスが正しいか確認してください
+const filePath = "./firebaseServiceAccountKey.json"; 
 
 try {
   const fileBuffer = fs.readFileSync(filePath);

@@ -24,7 +24,11 @@ dist-ssr
 *.sw?
 
 .env
+.env.*
+
 firebaseServiceAccountKey.json
+firebase_key_base64.txt
 
 MEMO.md
 スケジュール.md
+コード練習.js

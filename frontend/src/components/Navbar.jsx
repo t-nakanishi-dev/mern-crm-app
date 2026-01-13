@@ -3,22 +3,31 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useNotifications } from "../context/NotificationContext"; // ✅ 追加
+import { useNotifications } from "../context/NotificationContext";
 import NotificationList from "./NotificationList";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 
 const Navbar = () => {
   const { user, isAdmin, logout } = useAuth();
-  const { unreadCount, refreshNotifications } = useNotifications(); // ✅ Contextから取得
+  const { unreadCount, refreshNotifications } = useNotifications();
   const navigate = useNavigate();
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] =
     useState(false);
   const dropdownRef = useRef(null);
 
-  /**
-   * ドロップダウンの外をクリックしたら閉じる
-   */
+  // ★★★ デバッグ用ログ ★★★
+  useEffect(() => {
+    if (user) {
+      console.log("Navbar Debug ────────────────");
+      console.log("現在のユーザー情報:", user);
+      console.log("user.role の値:", user?.role);
+      console.log("isAdmin の判定結果:", isAdmin);
+      console.log("isAdminの型:", typeof isAdmin);
+      console.log("───────────────────────────────");
+    }
+  }, [user, isAdmin]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -31,12 +40,8 @@ const Navbar = () => {
     };
   }, [dropdownRef]);
 
-  /**
-   * ドロップダウンを開閉
-   */
   const handleBellClick = () => {
     setIsNotificationDropdownOpen(!isNotificationDropdownOpen);
-    // ドロップダウンを開くたびに通知をリフレッシュ
     if (!isNotificationDropdownOpen) {
       refreshNotifications();
     }
@@ -57,9 +62,10 @@ const Navbar = () => {
         <Link to="/" className="text-xl font-bold mr-6">
           CRM App
         </Link>
+
         {user && (
           <>
-            <Link to="/sales" className="mr-4 hover:text-gray-300">
+            <Link to="/sales" className="ml-6 mr-4 hover:text-gray-300">
               案件
             </Link>
             <Link to="/customers" className="mr-4 hover:text-gray-300">
@@ -77,14 +83,19 @@ const Navbar = () => {
             <Link to="/profile" className="mr-4 hover:text-gray-300">
               プロフィール
             </Link>
+
             {isAdmin && (
-              <Link to="/admin/users" className="hover:text-gray-300">
+              <Link
+                to="/admin/users"
+                className="hover:text-gray-300 font-medium"
+              >
                 ユーザー管理
               </Link>
             )}
           </>
         )}
       </div>
+
       <div className="flex items-center gap-4">
         {user && (
           <div className="relative" ref={dropdownRef}>
@@ -99,14 +110,15 @@ const Navbar = () => {
                 </span>
               )}
             </button>
+
             {isNotificationDropdownOpen && (
               <div className="absolute right-0 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                {/* Navbarからプロップスを渡す必要がなくなる */}
                 <NotificationList />
               </div>
             )}
           </div>
         )}
+
         {user ? (
           <button
             onClick={handleLogout}
