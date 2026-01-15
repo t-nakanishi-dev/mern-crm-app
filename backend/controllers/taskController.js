@@ -37,7 +37,7 @@ const recordActivity = async (
       before,
       after,
       targetModel: "Task",
-      targetId: targetId || taskId, // targetId が指定されなければ taskId を使用
+      targetId: targetId || taskId,
       updatedAt: timestamp,
     });
     await activity.save();
@@ -51,8 +51,18 @@ const recordActivity = async (
  * @desc 新規タスク作成
  */
 exports.createTask = asyncHandler(async (req, res) => {
-  console.log("📝 createTask start", req.body);
-  const { title, description, assignedTo, customer, sales, dueDate } = req.body;
+  console.log("📝 createTask start", req.body); // ← ここで status が来ているか絶対確認！
+
+  const {
+    title,
+    description,
+    assignedTo,
+    customer,
+    sales,
+    dueDate,
+    status = "todo", // ← デフォルトを明示（フロントから来たら上書き）
+  } = req.body;
+
   const createdBy = req.user.uid;
 
   const newTask = new Task({
@@ -63,41 +73,54 @@ exports.createTask = asyncHandler(async (req, res) => {
     customer,
     sales,
     dueDate,
+    status, // ← ★ これを追加（重要！）
   });
 
   const task = await newTask.save();
-  console.log("✅ Task saved:", task._id);
+  console.log("✅ Created task with status:", task.status);
 
+  // ユーザー・顧客・案件情報を取得
   const createdByUser = await User.findOne({ uid: createdBy });
   const assignedUser = await User.findOne({ uid: assignedTo });
   const customerObj = await Customer.findById(customer);
   const salesObj = await Sales.findById(sales);
 
-  const message = `${createdByUser?.displayName || "不明なユーザー"}が、顧客「${
-    customerObj?.name || "不明"
-  }」の案件「${salesObj?.dealName || "不明"}」に関する新しいタスク「${
-    task.title
-  }」を${assignedUser?.displayName || "不明なユーザー"}に割り当てました。`;
+  const creatorName = createdByUser?.displayName || "不明なユーザー";
+  const assigneeName = assignedUser?.displayName || "不明なユーザー";
+  const customerName = customerObj?.name || "不明";
+  const salesName = salesObj?.dealName || "不明";
 
-  console.log("🔔 Adding notification for assigned user");
-  await addNotification({
-    message,
-    targetUser: assignedTo,
-    relatedTask: task._id,
-  });
+  // 通知メッセージのベース
+  const baseMessage = `${creatorName}が、顧客「${customerName}」の案件「${salesName}」に関する新しいタスク「${task.title}」を作成しました。`;
 
-  if (createdBy !== assignedTo) {
-    console.log("🔔 Adding notification for creator");
+  // === 通知ロジック（修正の核心） ===
+  if (createdBy === assignedTo) {
+    // 自分自身に割り当てた場合 → 割り当て通知は送らず、作成通知だけ
+    console.log("🔔 Adding self-creation notification");
     await addNotification({
-      message: `${assignedUser?.displayName || "不明なユーザー"}がタスク「${
-        task.title
-      }」をあなたに割り当てました。`,
+      message: `あなたがタスク「${task.title}」を自分に作成・割り当てました。`,
+      targetUser: assignedTo,
+      relatedTask: task._id,
+    });
+  } else {
+    // 他人が担当者に割り当てた場合
+    console.log("🔔 Adding assignment notification to assignee");
+    await addNotification({
+      message: `${creatorName}がタスク「${task.title}」をあなたに割り当てました。`,
+      targetUser: assignedTo,
+      relatedTask: task._id,
+    });
+
+    // 作成者にも通知（自分が作成した場合でも、別の人に割り当てたことを知らせる）
+    console.log("🔔 Adding creation notification to creator");
+    await addNotification({
+      message: `${assigneeName}にタスク「${task.title}」を割り当てました。`,
       targetUser: createdBy,
       relatedTask: task._id,
     });
   }
 
-  // ✅ アクティビティ記録
+  // === アクティビティ記録（変更なし） ===
   await recordActivity(
     createdBy,
     "created",
@@ -108,20 +131,20 @@ exports.createTask = asyncHandler(async (req, res) => {
     assignedTo,
     null,
     task,
-    task._id // targetId を taskId に設定
+    task._id
   );
 
   console.log("📝 createTask end");
   res.status(201).json(task);
 });
 
+// 以下は変更なし（updateTask, deleteTask などは前回の修正版をそのまま使用）
 /**
  * @desc タスク更新
  */
 exports.updateTask = asyncHandler(async (req, res) => {
   console.log("📝 updateTask start", req.body);
-  const { title, description, status, assignedTo, customer, sales, dueDate } =
-    req.body;
+
   const task = await Task.findById(req.params.id);
 
   if (!task) {
@@ -130,43 +153,39 @@ exports.updateTask = asyncHandler(async (req, res) => {
   }
 
   const beforeTask = task.toObject();
-  const updatedFields = {};
 
-  if (title !== undefined && title !== task.title) updatedFields.title = title;
-  if (description !== undefined && description !== task.description)
-    updatedFields.description = description;
-  if (status !== undefined && status !== task.status)
-    updatedFields.status = status;
-  if (assignedTo !== undefined && assignedTo !== task.assignedTo)
-    updatedFields.assignedTo = assignedTo;
-  if (customer !== undefined && String(customer) !== String(task.customer))
-    updatedFields.customer = customer;
-  if (sales !== undefined && String(sales) !== String(task.sales))
-    updatedFields.sales = sales;
-  if (
-    dueDate &&
-    new Date(dueDate).toISOString() !== task.dueDate?.toISOString()
-  )
-    updatedFields.dueDate = dueDate;
+  const updateData = {
+    title: req.body.title !== undefined ? req.body.title : task.title,
+    description:
+      req.body.description !== undefined
+        ? req.body.description
+        : task.description,
+    status: req.body.status !== undefined ? req.body.status : task.status,
+    assignedTo:
+      req.body.assignedTo !== undefined ? req.body.assignedTo : task.assignedTo,
+    customer:
+      req.body.customer !== undefined ? req.body.customer : task.customer,
+    sales: req.body.sales !== undefined ? req.body.sales : task.sales,
+    dueDate: req.body.dueDate !== undefined ? req.body.dueDate : task.dueDate,
+  };
 
-  const updatedTask = await Task.findByIdAndUpdate(
-    req.params.id,
-    { ...updatedFields },
-    { new: true }
-  );
+  const updatedTask = await Task.findByIdAndUpdate(req.params.id, updateData, {
+    new: true,
+    runValidators: true,
+  });
 
   console.log("✅ Task updated:", updatedTask._id);
 
   const activityDescriptions = [];
   const user = await User.findOne({ uid: req.user.uid });
 
-  if (updatedFields.status) {
+  if (updateData.status !== beforeTask.status) {
     activityDescriptions.push(
       `ステータスを「${beforeTask.status}」から「${updatedTask.status}」に変更`
     );
   }
 
-  if (updatedFields.assignedTo) {
+  if (updateData.assignedTo !== beforeTask.assignedTo) {
     const beforeUser = await User.findOne({ uid: beforeTask.assignedTo });
     const afterUser = await User.findOne({ uid: updatedTask.assignedTo });
     activityDescriptions.push(
@@ -176,7 +195,7 @@ exports.updateTask = asyncHandler(async (req, res) => {
     );
   }
 
-  if (updatedFields.customer) {
+  if (String(updateData.customer) !== String(beforeTask.customer)) {
     const beforeCustomer = await Customer.findById(beforeTask.customer);
     const afterCustomer = await Customer.findById(updatedTask.customer);
     activityDescriptions.push(
@@ -186,7 +205,7 @@ exports.updateTask = asyncHandler(async (req, res) => {
     );
   }
 
-  if (updatedFields.sales) {
+  if (String(updateData.sales) !== String(beforeTask.sales)) {
     const beforeSales = await Sales.findById(beforeTask.sales);
     const afterSales = await Sales.findById(updatedTask.sales);
     activityDescriptions.push(
@@ -196,17 +215,22 @@ exports.updateTask = asyncHandler(async (req, res) => {
     );
   }
 
-  if (updatedFields.title)
+  if (updateData.title !== beforeTask.title)
     activityDescriptions.push(
       `タイトルを「${beforeTask.title}」から「${updatedTask.title}」に変更`
     );
-  if (updatedFields.description) activityDescriptions.push(`説明を更新`);
-  if (updatedFields.dueDate) {
+
+  if (updateData.description !== beforeTask.description)
+    activityDescriptions.push(`説明を更新`);
+
+  if (updateData.dueDate) {
     const oldDate = beforeTask.dueDate
       ? new Date(beforeTask.dueDate).toLocaleDateString()
       : "未定";
     const newDate = new Date(updatedTask.dueDate).toLocaleDateString();
-    activityDescriptions.push(`期日を「${oldDate}」から「${newDate}」に変更`);
+    if (oldDate !== newDate) {
+      activityDescriptions.push(`期日を「${oldDate}」から「${newDate}」に変更`);
+    }
   }
 
   if (activityDescriptions.length > 0) {
@@ -220,7 +244,7 @@ exports.updateTask = asyncHandler(async (req, res) => {
       updatedTask.assignedTo,
       beforeTask,
       updatedTask,
-      updatedTask._id // targetId を設定
+      updatedTask._id
     );
   }
 
@@ -268,7 +292,7 @@ exports.deleteTask = asyncHandler(async (req, res) => {
     task.assignedTo,
     task,
     null,
-    task._id // targetId を設定
+    task._id
   );
 
   await Task.findByIdAndDelete(req.params.id);
