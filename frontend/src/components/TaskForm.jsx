@@ -32,48 +32,65 @@ const TaskForm = ({
     setFilteredSales([]);
   };
 
-  // task が変わったらフィールドを更新
+  /**
+   * 🔹 編集時：task をフォームに反映
+   * populate / 非populate 両対応
+   */
   useEffect(() => {
-    console.log("📝 TaskForm useEffect task change:", task);
-    if (task) {
-      setTitle(task.title || "");
-      setDescription(task.description || "");
-      setAssignedTo(task.assignedTo || "");
-      setCustomer(task.customer || "");
-      setSalesId(task.sales || "");
-      setDueDate(task.dueDate ? task.dueDate.split("T")[0] : "");
-      setStatus(task.status || "todo");
-    } else {
+    if (!task) {
       resetForm();
+      return;
     }
+
+    const customerId =
+      task.customer && typeof task.customer === "object"
+        ? task.customer._id
+        : task.customer || "";
+
+    const salesIdFromTask =
+      task.sales && typeof task.sales === "object"
+        ? task.sales._id
+        : task.sales || "";
+
+    setTitle(task.title || "");
+    setDescription(task.description || "");
+    setStatus(task.status || "todo");
+    setDueDate(task.dueDate ? task.dueDate.split("T")[0] : "");
+    setAssignedTo(task.assignedToUser?.uid || task.assignedTo || "");
+    setCustomer(customerId);
+    setSalesId(salesIdFromTask);
   }, [task]);
 
-  // 顧客選択時に案件をフィルタリング
+  /**
+   * 🔹 顧客選択時：案件をフィルタリング
+   * 編集時は salesId を消さない
+   */
   useEffect(() => {
-    console.log("📝 TaskForm useEffect customer/sales change:", {
-      customer,
-      sales,
-    });
-    try {
-      if (customer && sales) {
-        const relatedSales = sales.filter((s) => s.customerId === customer);
-        console.log("🔍 Filtered sales:", relatedSales);
-        setFilteredSales(relatedSales);
-
-        if (task?.sales && relatedSales.some((s) => s._id === task.sales)) {
-          setSalesId(task.sales);
-        } else {
-          setSalesId("");
-        }
-      } else {
-        setFilteredSales([]);
-        setSalesId("");
-      }
-    } catch (err) {
-      console.error("❌ 案件のフィルタリング中にエラー:", err);
+    if (!customer || !Array.isArray(sales)) {
       setFilteredSales([]);
+      if (!task) setSalesId("");
+      return;
     }
-  }, [customer, sales, task]);
+
+    const relatedSales = sales.filter(
+      (s) => String(s.customerId) === String(customer)
+    );
+
+    setFilteredSales(relatedSales);
+
+    // 編集時：現在の salesId が有効なら維持
+    if (
+      salesId &&
+      relatedSales.some((s) => String(s._id) === String(salesId))
+    ) {
+      return;
+    }
+
+    // 新規作成時のみリセット
+    if (!task) {
+      setSalesId("");
+    }
+  }, [customer, sales]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -83,16 +100,14 @@ const TaskForm = ({
       description,
       assignedTo,
       customer,
-      sales: salesId,
+      sales: salesId || null,
       dueDate,
       status,
     };
 
-    console.log("📝 TaskForm handleSubmit formData:", formData);
+    console.log("📝 TaskForm handleSubmit:", formData);
 
     onSubmit(formData);
-
-    // ✅ 最小修正：保存後にリセット＆モーダルを閉じる
     resetForm();
     onClose();
   };
@@ -113,19 +128,17 @@ const TaskForm = ({
             className="border p-2 w-full"
             required
           />
+
           <textarea
             placeholder="説明"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="border p-2 w-full"
           />
+
           <select
             value={status}
-            onChange={(e) => {
-              const newStatus = e.target.value;
-              console.log("🔄 Status changed to:", newStatus); // ← これを追加
-              setStatus(newStatus);
-            }}
+            onChange={(e) => setStatus(e.target.value)}
             className="border p-2 w-full"
             required
           >
@@ -133,6 +146,7 @@ const TaskForm = ({
             <option value="in_progress">進行中</option>
             <option value="done">完了</option>
           </select>
+
           <select
             value={customer}
             onChange={(e) => setCustomer(e.target.value)}
@@ -146,10 +160,12 @@ const TaskForm = ({
               </option>
             ))}
           </select>
+
           <select
             value={salesId}
             onChange={(e) => setSalesId(e.target.value)}
             className="border p-2 w-full"
+            disabled={!customer}
           >
             <option value="">案件を選択（任意）</option>
             {filteredSales.map((s) => (
@@ -158,6 +174,7 @@ const TaskForm = ({
               </option>
             ))}
           </select>
+
           <select
             value={assignedTo}
             onChange={(e) => setAssignedTo(e.target.value)}
@@ -167,27 +184,29 @@ const TaskForm = ({
             <option value="">担当者を選択</option>
             {users?.map((user) => (
               <option key={user.uid} value={user.uid}>
-                {user.displayName}
+                {user.displayName || user.email || "不明"}
               </option>
             ))}
           </select>
+
           <input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             className="border p-2 w-full"
           />
+
           <div className="flex justify-end space-x-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded"
+              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
             >
               キャンセル
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               保存
             </button>

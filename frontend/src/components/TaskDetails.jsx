@@ -50,20 +50,16 @@ const TaskDetails = ({
           {getStatusText(task.status)}
         </div>
         <div>
+          <span className="font-semibold">作成者:</span>{" "}
+          {task.createdByUser?.displayName || "不明"}
+        </div>
+        <div>
           <span className="font-semibold">担当者:</span>{" "}
           {assignedUser?.displayName || "未割り当て"}
         </div>
         <div>
           <span className="font-semibold">期日:</span>{" "}
           {formatDueDate(task.dueDate)}
-        </div>
-        <div>
-          <span className="font-semibold">顧客:</span>{" "}
-          {customer?.companyName || customer?.name || "未指定"}
-        </div>
-        <div>
-          <span className="font-semibold">案件:</span>{" "}
-          {sale?.dealName || "未指定"}
         </div>
       </div>
 
