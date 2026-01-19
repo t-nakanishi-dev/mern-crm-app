@@ -22,7 +22,7 @@ const recordActivity = async (
   before = null,
   after = null,
   targetId = null,
-  timestamp = new Date()
+  timestamp = new Date(),
 ) => {
   try {
     console.log("📝 recordActivity start:", { userId, action, taskId });
@@ -119,41 +119,69 @@ exports.createTask = asyncHandler(async (req, res) => {
     assignedTo,
     null,
     task,
-    task._id
+    task._id,
   );
 
   res.status(201).json(task);
 });
 
 /**
- * @desc タスク更新
+ * @desc タスク更新（権限を柔軟に分岐）
  */
 exports.updateTask = asyncHandler(async (req, res) => {
-  console.log("📝 updateTask start", req.body);
+  console.log("📝 updateTask start", {
+    taskId: req.params.id,
+    updaterUid: req.user.uid,
+    updaterRole: req.user.role,
+    requestBody: req.body,
+  });
 
   const task = await Task.findById(req.params.id);
 
   if (!task) {
-    return res.status(404).json({ msg: "タスクが見つかりません" });
+    return res.status(404).json({ message: "タスクが見つかりません" });
   }
 
-  // ✅ 作成者のみ編集可能
-  if (String(task.createdBy) !== String(req.user.uid)) {
-    return res
-      .status(403)
-      .json({ message: "このタスクを編集する権限がありません" });
+  const isCreator = String(task.createdBy) === String(req.user.uid);
+  const isAssignee = String(task.assignedTo) === String(req.user.uid);
+  const isAdmin = req.user.role === "admin";
+
+  // 更新内容から「statusだけかどうか」を判定
+  const requestedUpdates = req.body;
+  const isOnlyStatusUpdate =
+    Object.keys(requestedUpdates).length === 1 &&
+    "status" in requestedUpdates &&
+    requestedUpdates.status !== undefined;
+
+  // 権限判定
+  let canUpdate = false;
+
+  if (isOnlyStatusUpdate) {
+    // ステータスだけ変更 → 作成者・担当者・管理者 ならOK
+    canUpdate = isCreator || isAssignee || isAdmin;
+    console.log("ステータス単独更新判定 → canUpdate:", canUpdate);
+  } else {
+    // その他の項目を含む変更 → 作成者または管理者 のみOK
+    canUpdate = isCreator || isAdmin;
+    console.log("フル編集判定 → canUpdate:", canUpdate);
+  }
+
+  if (!canUpdate) {
+    return res.status(403).json({
+      message: "この操作を行う権限がありません",
+    });
   }
 
   const beforeTask = task.toObject();
 
   const updateData = {
-    title: req.body.title ?? task.title,
-    description: req.body.description ?? task.description,
-    status: req.body.status ?? task.status,
-    assignedTo: req.body.assignedTo ?? task.assignedTo,
-    customer: req.body.customer ?? task.customer,
-    sales: req.body.sales ?? task.sales,
-    dueDate: req.body.dueDate ?? task.dueDate,
+    title: requestedUpdates.title ?? task.title,
+    description: requestedUpdates.description ?? task.description,
+    status: requestedUpdates.status ?? task.status,
+    assignedTo: requestedUpdates.assignedTo ?? task.assignedTo,
+    customer: requestedUpdates.customer ?? task.customer,
+    sales: requestedUpdates.sales ?? task.sales,
+    dueDate: requestedUpdates.dueDate ?? task.dueDate,
   };
 
   const updatedTask = await Task.findByIdAndUpdate(req.params.id, updateData, {
@@ -165,13 +193,13 @@ exports.updateTask = asyncHandler(async (req, res) => {
 
   if (updateData.status !== beforeTask.status) {
     activityDescriptions.push(
-      `ステータスを「${beforeTask.status}」から「${updatedTask.status}」に変更`
+      `ステータスを「${beforeTask.status}」から「${updatedTask.status}」に変更`,
     );
   }
 
   if (updateData.title !== beforeTask.title) {
     activityDescriptions.push(
-      `タイトルを「${beforeTask.title}」から「${updatedTask.title}」に変更`
+      `タイトルを「${beforeTask.title}」から「${updatedTask.title}」に変更`,
     );
   }
 
@@ -190,7 +218,7 @@ exports.updateTask = asyncHandler(async (req, res) => {
       updatedTask.assignedTo,
       beforeTask,
       updatedTask,
-      updatedTask._id
+      updatedTask._id,
     );
   }
 
@@ -198,7 +226,7 @@ exports.updateTask = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc タスク削除
+ * @desc タスク削除（作成者のみ）
  */
 exports.deleteTask = asyncHandler(async (req, res) => {
   console.log("📝 deleteTask start:", req.params.id);
@@ -206,10 +234,10 @@ exports.deleteTask = asyncHandler(async (req, res) => {
   const task = await Task.findById(req.params.id);
 
   if (!task) {
-    return res.status(404).json({ msg: "タスクが見つかりません" });
+    return res.status(404).json({ message: "タスクが見つかりません" });
   }
 
-  // ✅ 作成者のみ削除可能
+  // 削除は作成者のみ（adminでも削除させたい場合は || isAdmin を追加）
   if (String(task.createdBy) !== String(req.user.uid)) {
     return res
       .status(403)
@@ -242,7 +270,7 @@ exports.deleteTask = asyncHandler(async (req, res) => {
     task.assignedTo,
     task,
     null,
-    task._id
+    task._id,
   );
 
   await Task.findByIdAndDelete(req.params.id);
