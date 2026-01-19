@@ -11,7 +11,7 @@ const AdminUserPage = () => {
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [message, setMessage] = useState(null); // 成功/注意メッセージ用
+  const [message, setMessage] = useState(null);
 
   const fetchUsers = async (searchQuery = "") => {
     try {
@@ -35,7 +35,7 @@ const AdminUserPage = () => {
 
   const showMessage = (text, isError = false) => {
     setMessage({ text, isError });
-    setTimeout(() => setMessage(null), 8000); // 8秒後に自動消去
+    setTimeout(() => setMessage(null), 8000);
   };
 
   const handleToggleRole = async (targetUid, currentRole) => {
@@ -58,10 +58,9 @@ const AdminUserPage = () => {
       await fetchUsers(searchTerm);
       showMessage(
         `役割を「${newRole}」に変更しました。\n\n` +
-          `変更が完全に反映されるには、対象ユーザーが一度ログアウトして再度ログインする必要があります。`
+          `変更が完全に反映されるには、対象ユーザーが一度ログアウトして再度ログインする必要があります。`,
       );
     } catch (err) {
-      console.error("役割更新エラー:", err);
       const errorMsg =
         err.response?.data?.message ||
         "役割の更新に失敗しました。権限を確認してください。";
@@ -90,7 +89,6 @@ const AdminUserPage = () => {
       await fetchUsers(searchTerm);
       showMessage(`アカウントを${action}しました。`);
     } catch (err) {
-      console.error("アカウント状態更新エラー:", err);
       const errorMsg =
         err.response?.data?.message || "アカウント状態の更新に失敗しました。";
       showMessage(errorMsg, true);
@@ -128,7 +126,6 @@ const AdminUserPage = () => {
         ユーザー管理
       </h1>
 
-      {/* 操作結果メッセージ */}
       {message && (
         <div
           className={`mb-6 p-4 rounded-lg text-center ${
@@ -152,16 +149,23 @@ const AdminUserPage = () => {
         />
         <button
           onClick={handleSearch}
-          className="ml-2 bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
+          className="ml-2 bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition"
         >
           検索
         </button>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg overflow-x-auto mb-8">
-        <table className="min-w-full leading-normal">
-          <thead>
-            <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+      {/* スクロール対応テーブル */}
+      <div
+        className="
+          bg-white shadow-md rounded-lg mb-8 pr-1
+          overflow-x-auto overflow-y-auto
+          max-h-[50vh] md:max-h-[60vh]
+        "
+      >
+        <table className="min-w-[1200px] leading-normal">
+          <thead className="sticky top-0 bg-gray-200 z-10">
+            <tr className="text-gray-600 uppercase text-sm leading-normal">
               <th className="py-3 px-6 text-left">ユーザーID</th>
               <th className="py-3 px-6 text-left">表示名</th>
               <th className="py-3 px-6 text-left">メールアドレス</th>
@@ -170,6 +174,7 @@ const AdminUserPage = () => {
               <th className="py-3 px-6 text-center">アクション</th>
             </tr>
           </thead>
+
           <tbody className="text-gray-600 text-sm font-light">
             {users.length > 0 ? (
               users.map((item) => (
@@ -179,25 +184,27 @@ const AdminUserPage = () => {
                     item.disabled ? "bg-gray-100 text-gray-400" : ""
                   }`}
                 >
-                  <td className="py-3 px-6 text-left whitespace-nowrap">
-                    {item._id}
-                  </td>
-                  <td className="py-3 px-6 text-left">
+                  <td className="py-3 px-6 whitespace-nowrap">{item._id}</td>
+
+                  <td className="py-3 px-6">
                     <Link
                       to={`/admin/users/${item.uid}`}
-                      className="text-blue-500 hover:text-blue-700 hover:underline"
+                      className="text-blue-500 hover:underline"
                     >
                       {item.displayName || "(表示名なし)"}
                     </Link>
                   </td>
-                  <td className="py-3 px-6 text-left">{item.email}</td>
-                  <td className="py-3 px-6 text-left font-medium">
+
+                  <td className="py-3 px-6">{item.email}</td>
+
+                  <td className="py-3 px-6 font-medium">
                     {item.role === "admin" ? (
                       <span className="text-purple-600 font-bold">管理者</span>
                     ) : (
                       "一般ユーザー"
                     )}
                   </td>
+
                   <td className="py-3 px-6 text-center">
                     <span
                       className={`font-bold py-1 px-3 rounded-full text-xs ${
@@ -209,11 +216,12 @@ const AdminUserPage = () => {
                       {item.disabled ? "無効" : "有効"}
                     </span>
                   </td>
+
                   <td className="py-3 px-6 text-center">
-                    <div className="flex items-center justify-center space-x-3">
+                    <div className="flex justify-center gap-3">
                       <button
                         onClick={() => handleToggleRole(item.uid, item.role)}
-                        className={`font-bold py-2 px-4 rounded-full text-xs transition duration-200 ease-in-out transform hover:scale-105 ${
+                        className={`font-bold py-2 px-4 rounded-full text-xs hover:scale-105 transition ${
                           item.role === "admin"
                             ? "bg-red-500 text-white hover:bg-red-700"
                             : "bg-blue-500 text-white hover:bg-blue-700"
@@ -223,11 +231,12 @@ const AdminUserPage = () => {
                           ? "一般ユーザーにする"
                           : "管理者にする"}
                       </button>
+
                       <button
                         onClick={() =>
                           handleToggleDisabled(item.uid, item.disabled)
                         }
-                        className={`font-bold py-2 px-4 rounded-full text-xs transition duration-200 ease-in-out transform hover:scale-105 ${
+                        className={`font-bold py-2 px-4 rounded-full text-xs hover:scale-105 transition ${
                           item.disabled
                             ? "bg-green-500 text-white hover:bg-green-700"
                             : "bg-gray-600 text-white hover:bg-gray-800"
