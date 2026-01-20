@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: "./", // 相対パスでビルド
+  base: "/", // ★ 絶対パスにする
   server: {
     proxy: {
       "/api": {
