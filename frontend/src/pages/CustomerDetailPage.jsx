@@ -12,6 +12,7 @@ const CustomerDetailPage = () => {
   const { customerId } = useParams();
   const navigate = useNavigate();
   const { user, token } = useAuth();
+
   const [customer, setCustomer] = useState(null);
   const [sales, setSales] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -21,6 +22,38 @@ const CustomerDetailPage = () => {
 
   // 更新トリガー
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // =============================
+  // status 表示マッピング（TaskCard と統一）
+  // =============================
+  const taskStatusTextMap = {
+    todo: "未着手",
+    in_progress: "進行中",
+    done: "完了",
+  };
+
+  const taskStatusColorMap = {
+    todo: "bg-red-500",
+    in_progress: "bg-yellow-500",
+    done: "bg-green-500",
+  };
+
+  // 案件ステータス（今回追加）
+  const salesStatusTextMap = {
+    見込み: "見込み",
+    提案中: "提案中",
+    交渉中: "交渉中",
+    契約済: "契約済",
+    失注: "失注",
+  };
+
+  const salesStatusColorMap = {
+    見込み: "bg-gray-500",
+    提案中: "bg-blue-500",
+    交渉中: "bg-yellow-500",
+    契約済: "bg-green-600",
+    失注: "bg-red-500",
+  };
 
   const fetchCustomer = useCallback(async () => {
     if (!user || !token || !customerId) return;
@@ -48,7 +81,7 @@ const CustomerDetailPage = () => {
     try {
       const res = await authorizedRequest(
         "GET",
-        `/sales/customer/${customerId}`
+        `/sales/customer/${customerId}`,
       );
       setSales(res);
     } catch (err) {
@@ -62,7 +95,7 @@ const CustomerDetailPage = () => {
     try {
       const res = await authorizedRequest(
         "GET",
-        `/customers/${customerId}/tasks`
+        `/customers/${customerId}/tasks`,
       );
       setTasks(res);
     } catch (err) {
@@ -71,9 +104,7 @@ const CustomerDetailPage = () => {
     }
   }, [user, token, customerId]);
 
-  // データ更新トリガー
   const refreshAllData = useCallback(() => {
-    console.log("全データの再取得をトリガーしました...");
     setRefreshTrigger((prev) => prev + 1);
   }, []);
 
@@ -136,30 +167,28 @@ const CustomerDetailPage = () => {
         <div className="bg-white p-6 rounded-lg shadow-md h-fit">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">顧客情報</h2>
           <p className="mb-2">
-            <strong className="font-medium">顧客名:</strong> {customer.name}
+            <strong>顧客名:</strong> {customer.name}
           </p>
           <p className="mb-2">
-            <strong className="font-medium">会社名:</strong>{" "}
-            {customer.companyName}
+            <strong>会社名:</strong> {customer.companyName}
           </p>
           <p className="mb-2">
-            <strong className="font-medium">メール:</strong> {customer.email}
+            <strong>メール:</strong> {customer.email}
           </p>
           <p className="mb-2">
-            <strong className="font-medium">電話番号:</strong> {customer.phone}
+            <strong>電話番号:</strong> {customer.phone}
           </p>
           <p className="mb-2">
-            <strong className="font-medium">ステータス:</strong>{" "}
-            {customer.status}
+            <strong>ステータス:</strong> {customer.status}
           </p>
           <p className="mb-4">
-            <strong className="font-medium">メモ:</strong>{" "}
-            {customer.contactMemo}
+            <strong>メモ:</strong> {customer.contactMemo}
           </p>
+
           <div className="flex space-x-2">
             <button
               onClick={() => setEditingCustomer(customer)}
-              disabled={editingCustomer ? true : false} // 下で編集中ならグレーアウト
+              disabled={editingCustomer ? true : false}
               className={`px-4 py-2 rounded ${
                 editingCustomer
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -170,7 +199,7 @@ const CustomerDetailPage = () => {
             </button>
             <button
               onClick={handleDelete}
-              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors duration-200"
+              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
             >
               削除
             </button>
@@ -197,22 +226,22 @@ const CustomerDetailPage = () => {
           </h2>
           {sales.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-[900px] divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium">
                       案件名
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium">
                       金額
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium">
                       ステータス
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium">
                       作成日
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium">
                       メモ
                     </th>
                   </tr>
@@ -220,21 +249,30 @@ const CustomerDetailPage = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {sales.map((sale) => (
                     <tr key={sale._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {sale.dealName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">{sale.dealName}</td>
+                      <td className="px-6 py-4">
                         ¥{sale.amount.toLocaleString()}
                       </td>
+
+                      {/* ★ 修正ここ */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {sale.status}
+                        <span
+                          className={`
+                          inline-flex items-center
+                          whitespace-nowrap
+                          px-3 py-1 text-sm font-semibold
+                          rounded-full text-white
+                          ${salesStatusColorMap[sale.status]}
+                        `}
+                        >
+                          {salesStatusTextMap[sale.status] ?? sale.status}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+
+                      <td className="px-6 py-4">
                         {new Date(sale.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {sale.notes}
-                      </td>
+                      <td className="px-6 py-4">{sale.notes}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -257,16 +295,16 @@ const CustomerDetailPage = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium">
                       タスク名
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium">
                       ステータス
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium">
                       期日
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium">
                       説明
                     </th>
                   </tr>
@@ -274,18 +312,20 @@ const CustomerDetailPage = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {tasks.map((task) => (
                     <tr key={task._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {task.title}
+                      <td className="px-6 py-4">{task.title}</td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-3 py-1 text-sm font-semibold rounded-full text-white ${
+                            taskStatusColorMap[task.status]
+                          }`}
+                        >
+                          {taskStatusTextMap[task.status] ?? task.status}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {task.status}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">
                         {new Date(task.dueDate).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {task.description}
-                      </td>
+                      <td className="px-6 py-4">{task.description}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -299,7 +339,6 @@ const CustomerDetailPage = () => {
         </div>
       </div>
 
-      {/* アクティビティ履歴 */}
       <div className="mt-8">
         <ActivityTimeline
           type="customer"
