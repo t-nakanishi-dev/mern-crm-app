@@ -57,8 +57,8 @@ const Column = memo(function Column({ status, items }) {
             {status === "todo"
               ? "未着手"
               : status === "in_progress"
-              ? "進行中"
-              : "完了"}
+                ? "進行中"
+                : "完了"}
           </h2>
 
           {items && items.length > 0 ? (
@@ -85,7 +85,7 @@ const Column = memo(function Column({ status, items }) {
 const KanbanBoard = () => {
   const { user, token, isAuthReady, user: currentUser } = useAuth();
   const [pipelines, setPipelines] = useState(() =>
-    STATUSES.reduce((acc, s) => ({ ...acc, [s]: [] }), {})
+    STATUSES.reduce((acc, s) => ({ ...acc, [s]: [] }), {}),
   );
   const [loading, setLoading] = useState(true);
   const [usersMap, setUsersMap] = useState({}); // uid → displayName
@@ -147,7 +147,7 @@ const KanbanBoard = () => {
 
       const newPipelines = STATUSES.reduce(
         (acc, s) => ({ ...acc, [s]: [] }),
-        {}
+        {},
       );
       tasksWithNames.forEach((task) => {
         const status = task.status || "todo";
@@ -212,7 +212,7 @@ const KanbanBoard = () => {
         loadTasks(); // エラー時のみ再取得
       }
     },
-    [loadTasks]
+    [loadTasks],
   );
 
   if (loading) {
