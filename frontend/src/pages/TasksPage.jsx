@@ -16,7 +16,7 @@ const TasksPage = () => {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [tasksRefreshKey, setTasksRefreshKey] = useState(0); // ✅ アクティビティ更新用キー
+  const [tasksRefreshKey, setTasksRefreshKey] = useState(0);
 
   const [selectedTask, setSelectedTask] = useState(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -26,7 +26,6 @@ const TasksPage = () => {
   const { isAuthReady, user: currentUser } = useAuth();
 
   const fetchInitialData = async () => {
-    console.log("📝 TasksPage fetchInitialData 開始");
     try {
       const [fetchedUsers, fetchedTasks, fetchedCustomers, fetchedSales] =
         await Promise.all([
@@ -36,19 +35,12 @@ const TasksPage = () => {
           authorizedRequest("get", "/sales"),
         ]);
 
-      console.log("✅ fetchInitialData 結果:", {
-        fetchedUsers,
-        fetchedTasks,
-        fetchedCustomers,
-        fetchedSales,
-      });
-
       setUsers(fetchedUsers.users);
       setTasks(fetchedTasks);
       setCustomers(fetchedCustomers);
       setSales(fetchedSales);
     } catch (err) {
-      console.error("❌ fetchInitialData エラー:", err);
+      console.error(err);
       setError("データの取得に失敗しました");
     } finally {
       setLoading(false);
@@ -56,96 +48,81 @@ const TasksPage = () => {
   };
 
   useEffect(() => {
-    if (isAuthReady) {
-      console.log("📝 isAuthReady true -> fetchInitialData");
-      fetchInitialData();
-    }
+    if (isAuthReady) fetchInitialData();
   }, [isAuthReady]);
 
+  /* =========================
+     ここが今回の核心
+     ========================= */
+  const handleTaskUpdated = (updatedTask) => {
+    setTasks((prev) =>
+      prev.map((task) => (task._id === updatedTask._id ? updatedTask : task)),
+    );
+    setTasksRefreshKey((prev) => prev + 1);
+  };
+
   const handleOpenFormModal = (task = null) => {
-    console.log("📝 handleOpenFormModal task:", task);
     setSelectedTask(task);
     setIsFormModalOpen(true);
   };
 
   const handleCloseFormModal = () => {
-    console.log("📝 handleCloseFormModal");
     setSelectedTask(null);
     setIsFormModalOpen(false);
   };
 
   const handleSaveTask = async (taskData) => {
-    console.log("📝 handleSaveTask taskData:", taskData);
     try {
       if (selectedTask) {
-        console.log("📝 Updating existing task:", selectedTask._id);
-        await authorizedRequest("put", `/tasks/${selectedTask._id}`, taskData);
+        const updated = await authorizedRequest(
+          "put",
+          `/tasks/${selectedTask._id}`,
+          taskData,
+        );
+        handleTaskUpdated(updated);
       } else {
-        console.log("📝 Creating new task");
-        await authorizedRequest("post", "/tasks", taskData);
+        const created = await authorizedRequest("post", "/tasks", taskData);
+        setTasks((prev) => [...prev, created]);
       }
-      await fetchInitialData();
       handleCloseFormModal();
-      setTasksRefreshKey((prevKey) => prevKey + 1);
-      console.log("✅ Task saved, tasksRefreshKey:", tasksRefreshKey + 1);
     } catch (err) {
-      console.error("❌ handleSaveTask エラー:", err);
+      console.error(err);
     }
   };
 
   const handleViewDetails = (task) => {
-    console.log("📝 handleViewDetails task:", task);
     setSelectedTask(task);
     setIsDetailsModalOpen(true);
   };
 
-  const handleCloseDetailsModal = () => {
-    console.log("📝 handleCloseDetailsModal");
-    setSelectedTask(null);
-    setIsDetailsModalOpen(false);
-  };
-
-  const handleOpenDeleteConfirm = (task) => {
-    console.log("📝 handleOpenDeleteConfirm task:", task);
-    setSelectedTask(task);
-    setIsConfirmModalOpen(true);
-  };
-
-  const handleCloseDeleteConfirm = () => {
-    console.log("📝 handleCloseDeleteConfirm");
-    setSelectedTask(null);
-    setIsConfirmModalOpen(false);
-  };
-
   const handleDeleteTask = async () => {
     try {
-      if (selectedTask) {
-        console.log("📝 handleDeleteTask task:", selectedTask._id);
-        await authorizedRequest("delete", `/tasks/${selectedTask._id}`);
-        await fetchInitialData();
-        handleCloseDeleteConfirm();
-      }
+      await authorizedRequest("delete", `/tasks/${selectedTask._id}`);
+      setTasks((prev) => prev.filter((task) => task._id !== selectedTask._id));
+      setIsConfirmModalOpen(false);
+      setSelectedTask(null);
     } catch (err) {
-      console.error("❌ handleDeleteTask エラー:", err);
+      console.error(err);
     }
   };
 
   if (loading || !isAuthReady)
     return <p className="text-center mt-20">データを読み込み中...</p>;
-
   if (error) return <p className="text-center mt-20 text-red-600">{error}</p>;
 
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">タスク一覧</h1>
+
       <div className="flex justify-end mb-6">
         <button
           onClick={() => handleOpenFormModal()}
-          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-6 py-2 bg-blue-600 text-white rounded"
         >
           新規タスク追加
         </button>
       </div>
+
       <TaskList
         tasks={tasks}
         users={users}
@@ -153,11 +130,14 @@ const TasksPage = () => {
         sales={sales}
         currentUserUid={currentUser?.uid}
         onEdit={handleOpenFormModal}
-        onDelete={handleOpenDeleteConfirm}
+        onDelete={(task) => {
+          setSelectedTask(task);
+          setIsConfirmModalOpen(true);
+        }}
         onViewDetails={handleViewDetails}
+        onTaskUpdated={handleTaskUpdated}
       />
 
-      {/* タスクフォームモーダル */}
       <TaskForm
         isOpen={isFormModalOpen}
         onClose={handleCloseFormModal}
@@ -168,41 +148,37 @@ const TasksPage = () => {
         sales={sales}
       />
 
-      {/* タスク詳細モーダル */}
       <CustomModal
         isOpen={isDetailsModalOpen}
-        onClose={handleCloseDetailsModal}
+        onClose={() => setIsDetailsModalOpen(false)}
       >
         <TaskDetails
           task={selectedTask}
           users={users}
           customers={customers}
           sales={sales}
-          onClose={handleCloseDetailsModal}
           refreshKey={tasksRefreshKey}
         />
       </CustomModal>
 
-      {/* 削除確認モーダル */}
       <CustomModal
         isOpen={isConfirmModalOpen}
-        onClose={handleCloseDeleteConfirm}
+        onClose={() => setIsConfirmModalOpen(false)}
       >
         <div className="p-6">
-          <h2 className="text-xl font-bold mb-4">タスク削除の確認</h2>
-          <p className="mb-6">
-            タスク「{selectedTask?.title}」を本当に削除しますか？
+          <p className="mb-4">
+            タスク「{selectedTask?.title}」を削除しますか？
           </p>
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end gap-2">
             <button
-              onClick={handleCloseDeleteConfirm}
+              onClick={() => setIsConfirmModalOpen(false)}
               className="px-4 py-2 bg-gray-300 rounded"
             >
               キャンセル
             </button>
             <button
               onClick={handleDeleteTask}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              className="px-4 py-2 bg-red-600 text-white rounded"
             >
               削除
             </button>
