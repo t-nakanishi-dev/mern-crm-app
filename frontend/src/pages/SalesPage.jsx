@@ -5,17 +5,18 @@ import { useAuth } from "../context/AuthContext";
 import { authorizedRequest } from "../services/authService";
 import Modal from "../components/Modal";
 import { Link } from "react-router-dom";
-import SalesForm from "../components/SalesForm"; // SalesFormをインポート
+import SalesForm from "../components/SalesForm";
+import StatusBadge from "../components/StatusBadge"; // ← 追加
+import { SALES_STATUS } from "../constants/statusConfig";
 
 const SalesPage = () => {
   const { user, token } = useAuth();
   const [sales, setSales] = useState([]);
-  const [editingSale, setEditingSale] = useState(null); // 編集中の案件データを保持
+  const [editingSale, setEditingSale] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({});
-  const [customers, setCustomers] = useState([]); // 顧客リストを保持
+  const [customers, setCustomers] = useState([]);
 
-  // 顧客リストを取得する関数 (SalesFormでも使われるが、ここでは案件名表示のために必要)
   const fetchCustomers = useCallback(async () => {
     if (!user || !token) return;
     try {
@@ -28,7 +29,6 @@ const SalesPage = () => {
     }
   }, [user, token]);
 
-  // 案件リストを取得する関数
   const fetchSales = useCallback(async () => {
     if (!user || !token) {
       setSales([]);
@@ -61,7 +61,7 @@ const SalesPage = () => {
   }, [fetchSales, fetchCustomers]);
 
   const handleEdit = (sale) => {
-    setEditingSale(sale); // 編集中の案件をセット
+    setEditingSale(sale);
   };
 
   const handleDelete = (id) => {
@@ -104,7 +104,6 @@ const SalesPage = () => {
     }
   };
 
-  // customerIdから顧客名を取得するヘルパー関数
   const getCustomerName = (customerId) => {
     const customer = customers.find((c) => c._id === customerId);
     return customer ? customer.companyName : "顧客情報なし";
@@ -116,15 +115,14 @@ const SalesPage = () => {
 
       <h1 className="text-3xl font-bold text-gray-800 mb-6">営業案件管理</h1>
 
-      {/* SalesFormコンポーネントを配置 */}
       <div className="mb-8">
         <SalesForm
           editingSale={editingSale}
           onSuccess={() => {
-            fetchSales(); // 成功したら案件リストを再取得
-            setEditingSale(null); // 編集状態を解除
+            fetchSales();
+            setEditingSale(null);
           }}
-          onCancelEdit={() => setEditingSale(null)} // キャンセル時に編集状態を解除
+          onCancelEdit={() => setEditingSale(null)}
         />
       </div>
 
@@ -168,7 +166,7 @@ const SalesPage = () => {
                       ¥{sale.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {sale.status}
+                      <StatusBadge status={sale.status} config={SALES_STATUS} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {sale.dueDate
@@ -179,13 +177,13 @@ const SalesPage = () => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(sale)}
-                          className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500 transition-colors duration-200"
+                          className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500"
                         >
                           編集
                         </button>
                         <button
                           onClick={() => handleDelete(sale._id)}
-                          className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors duration-200"
+                          className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
                         >
                           削除
                         </button>

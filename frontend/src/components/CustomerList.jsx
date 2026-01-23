@@ -5,6 +5,8 @@ import { useAuth } from "../context/AuthContext";
 import { authorizedRequest } from "../services/authService";
 import CustomerForm from "./CustomerForm";
 import { Link } from "react-router-dom";
+import StatusBadge from "./StatusBadge"; // ← 追加
+import { SALES_STATUS } from "../constants/statusConfig";
 
 const CustomerList = () => {
   const { user, token } = useAuth();
@@ -90,7 +92,9 @@ const CustomerList = () => {
                     </Link>
                   </td>
                   <td className="border p-2">{c.companyName}</td>
-                  <td className="border p-2">{c.status}</td>
+                  <td className="border p-2">
+                    <StatusBadge status={c.status} config={SALES_STATUS}/>
+                  </td>
                   <td className="border p-2">{c.email}</td>
                   <td className="border p-2">{c.phone}</td>
                   <td className="border p-2 space-x-2">

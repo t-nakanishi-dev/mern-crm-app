@@ -1,12 +1,12 @@
-// src/pages/CustomerDetailPage.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authorizedRequest } from "../services/authService";
 import Modal from "../components/Modal";
 import CustomerForm from "../components/CustomerForm";
-import ContactList from "../components/ContactList";
 import ActivityTimeline from "../components/ActivityTimeline";
+import StatusBadge from "../components/StatusBadge";
+import { TASK_STATUS, SALES_STATUS } from "../constants/statusConfig";
 
 const CustomerDetailPage = () => {
   const { customerId } = useParams();
@@ -20,47 +20,15 @@ const CustomerDetailPage = () => {
   const [modalConfig, setModalConfig] = useState({});
   const [editingCustomer, setEditingCustomer] = useState(null);
 
-  // 更新トリガー
+  // 再取得トリガー
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  // =============================
-  // status 表示マッピング（TaskCard と統一）
-  // =============================
-  const taskStatusTextMap = {
-    todo: "未着手",
-    in_progress: "進行中",
-    done: "完了",
-  };
-
-  const taskStatusColorMap = {
-    todo: "bg-red-500",
-    in_progress: "bg-yellow-500",
-    done: "bg-green-500",
-  };
-
-  // 案件ステータス（今回追加）
-  const salesStatusTextMap = {
-    見込み: "見込み",
-    提案中: "提案中",
-    交渉中: "交渉中",
-    契約済: "契約済",
-    失注: "失注",
-  };
-
-  const salesStatusColorMap = {
-    見込み: "bg-gray-500",
-    提案中: "bg-blue-500",
-    交渉中: "bg-yellow-500",
-    契約済: "bg-green-600",
-    失注: "bg-red-500",
-  };
 
   const fetchCustomer = useCallback(async () => {
     if (!user || !token || !customerId) return;
     try {
       const res = await authorizedRequest("GET", `/customers/${customerId}`);
       setCustomer(res);
-      setEditingCustomer(res);
+      setEditingCustomer(null);
     } catch (err) {
       console.error("顧客情報の取得に失敗しました:", err);
       setModalConfig({
@@ -124,7 +92,7 @@ const CustomerDetailPage = () => {
     setEditingCustomer(null);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     setModalConfig({
       title: "顧客削除確認",
       message: "この顧客を削除してもよろしいですか？",
@@ -150,7 +118,9 @@ const CustomerDetailPage = () => {
     setShowModal(true);
   };
 
-  if (!customer) return <div className="text-center mt-8">読み込み中...</div>;
+  if (!customer) {
+    return <div className="text-center mt-8">読み込み中...</div>;
+  }
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen font-sans">
@@ -166,6 +136,7 @@ const CustomerDetailPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-6 rounded-lg shadow-md h-fit">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">顧客情報</h2>
+
           <p className="mb-2">
             <strong>顧客名:</strong> {customer.name}
           </p>
@@ -188,7 +159,7 @@ const CustomerDetailPage = () => {
           <div className="flex space-x-2">
             <button
               onClick={() => setEditingCustomer(customer)}
-              disabled={editingCustomer ? true : false}
+              disabled={!!editingCustomer}
               className={`px-4 py-2 rounded ${
                 editingCustomer
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -224,6 +195,7 @@ const CustomerDetailPage = () => {
           <h2 className="text-xl font-semibold text-gray-700 mb-4">
             関連案件一覧
           </h2>
+
           {sales.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-[900px] divide-y divide-gray-200">
@@ -253,22 +225,12 @@ const CustomerDetailPage = () => {
                       <td className="px-6 py-4">
                         ¥{sale.amount.toLocaleString()}
                       </td>
-
-                      {/* ★ 修正ここ */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`
-                          inline-flex items-center
-                          whitespace-nowrap
-                          px-3 py-1 text-sm font-semibold
-                          rounded-full text-white
-                          ${salesStatusColorMap[sale.status]}
-                        `}
-                        >
-                          {salesStatusTextMap[sale.status] ?? sale.status}
-                        </span>
+                        <StatusBadge
+                          status={sale.status}
+                          config={SALES_STATUS}
+                        />
                       </td>
-
                       <td className="px-6 py-4">
                         {new Date(sale.createdAt).toLocaleDateString()}
                       </td>
@@ -290,9 +252,10 @@ const CustomerDetailPage = () => {
           <h2 className="text-xl font-semibold text-gray-700 mb-4">
             関連タスク一覧
           </h2>
+
           {tasks.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-[900px] divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium">
@@ -313,14 +276,11 @@ const CustomerDetailPage = () => {
                   {tasks.map((task) => (
                     <tr key={task._id}>
                       <td className="px-6 py-4">{task.title}</td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-3 py-1 text-sm font-semibold rounded-full text-white ${
-                            taskStatusColorMap[task.status]
-                          }`}
-                        >
-                          {taskStatusTextMap[task.status] ?? task.status}
-                        </span>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge
+                          status={task.status}
+                          config={TASK_STATUS}
+                        />
                       </td>
                       <td className="px-6 py-4">
                         {new Date(task.dueDate).toLocaleDateString()}
