@@ -25,9 +25,6 @@ const verifyFirebaseToken = asyncHandler(async (req, res, next) => {
         .json({ message: "未登録ユーザー：MongoDBにユーザー情報がありません" });
     }
 
-    // ✅ デバッグ用：MongoDBから取得したユーザーの役割を確認
-    console.log("MongoDB user role:", user.role);
-
     req.user = {
       ...decodedToken,
       _id: user._id,
@@ -41,12 +38,6 @@ const verifyFirebaseToken = asyncHandler(async (req, res, next) => {
 });
 
 const isAdmin = (req, res, next) => {
-  // ✅ デバッグ用：isAdminミドルウェアがチェックしている役割を確認
-  console.log(
-    "isAdmin check on req.user.role:",
-    req.user ? req.user.role : "ユーザー情報なし"
-  );
-
   if (req.user && req.user.role === "admin") {
     next();
   } else {

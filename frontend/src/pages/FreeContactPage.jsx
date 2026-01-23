@@ -2,7 +2,7 @@
 
 import ContactForm from "../components/ContactForm";
 import { useNavigate } from "react-router-dom";
-import CustomModal from "../components/CustomModal"; // カスタムモーダルをインポート
+import CustomModal from "../components/CustomModal"; 
 import { useState } from "react";
 
 const FreeContactPage = () => {
@@ -15,7 +15,7 @@ const FreeContactPage = () => {
 
   const closeModal = () => {
     setModalOpen(false);
-    navigate("/"); // 成功後にトップページへ遷移
+    navigate("/"); 
   };
 
   return (

@@ -11,7 +11,7 @@ const Dashboard = () => {
   const [summary, setSummary] = useState(null);
   const [statusSummary, setStatusSummary] = useState([]);
   const [customerSales, setCustomerSales] = useState([]);
-  const [upcomingDeals, setUpcomingDeals] = useState([]); // ✅ 新しいステートを追加
+  const [upcomingDeals, setUpcomingDeals] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -27,7 +27,7 @@ const Dashboard = () => {
         setSummary(data);
         setStatusSummary(data.statusSummary);
         setCustomerSales(data.customerSales);
-        setUpcomingDeals(data.upcomingDeals); // ✅ 取得したデータをステートにセット
+        setUpcomingDeals(data.upcomingDeals); 
         setError(null);
       } catch (err) {
         console.error("サマリーデータの取得に失敗しました:", err);

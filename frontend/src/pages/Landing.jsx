@@ -2,13 +2,12 @@
 
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../firebase/config"; // Firebase auth
+import { auth } from "../firebase/config"; 
 
 export default function Landing() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ユーザーがログイン済みならダッシュボードへリダイレクト
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         navigate("/dashboard", { replace: true });

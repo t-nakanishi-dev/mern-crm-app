@@ -51,9 +51,6 @@ const TasksPage = () => {
     if (isAuthReady) fetchInitialData();
   }, [isAuthReady]);
 
-  /* =========================
-     ここが今回の核心
-     ========================= */
   const handleTaskUpdated = (updatedTask) => {
     setTasks((prev) =>
       prev.map((task) => (task._id === updatedTask._id ? updatedTask : task)),

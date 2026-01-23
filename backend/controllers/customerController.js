@@ -13,7 +13,7 @@ const recordActivity = async (
   targetId,
   description,
   customerId = null,
-  assignedUserId // ✅ assignedUserIdを受け取るように変更
+  assignedUserId 
 ) => {
   try {
     const activity = new Activity({
@@ -122,7 +122,7 @@ exports.updateCustomer = asyncHandler(async (req, res) => {
         updatedCustomer.companyName || updatedCustomer.name
       }」の情報を更新しました: ${changes.join("、")}`,
       updatedCustomer._id,
-      userId // ✅ assignedUserIdを渡すように変更
+      userId 
     );
   }
 

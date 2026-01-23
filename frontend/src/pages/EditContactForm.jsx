@@ -6,7 +6,7 @@ import { authorizedRequest } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 
 const EditContactForm = () => {
-  const { id } = useParams(); // 問い合わせID
+  const { id } = useParams(); 
   const { token } = useAuth();
   const [contact, setContact] = useState(null);
   const [error, setError] = useState("");

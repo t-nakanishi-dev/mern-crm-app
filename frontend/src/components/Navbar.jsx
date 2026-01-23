@@ -16,18 +16,6 @@ const Navbar = () => {
     useState(false);
   const dropdownRef = useRef(null);
 
-  // ★★★ デバッグ用ログ ★★★
-  useEffect(() => {
-    if (user) {
-      console.log("Navbar Debug ────────────────");
-      console.log("現在のユーザー情報:", user);
-      console.log("user.role の値:", user?.role);
-      console.log("isAdmin の判定結果:", isAdmin);
-      console.log("isAdminの型:", typeof isAdmin);
-      console.log("───────────────────────────────");
-    }
-  }, [user, isAdmin]);
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {

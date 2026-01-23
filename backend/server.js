@@ -1,4 +1,4 @@
-// backend/server.js (詳細コメント付き)
+// backend/server.js 
 
 const express = require("express");
 const cors = require("cors");

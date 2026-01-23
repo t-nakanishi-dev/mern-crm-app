@@ -19,8 +19,6 @@ router.get(
   taskController.getTasksByCustomer
 );
 
-// ★ 重要: 単一タスク詳細取得ルートを追加（これが欠けていた）
-// 他の :id 系ルートより前に置く必要はないが、明確にするためここに配置
 router.get("/:id", verifyFirebaseToken, taskController.getTaskById);
 
 // タスク作成ルートにログミドルウェアを追加

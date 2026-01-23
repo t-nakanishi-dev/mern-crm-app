@@ -3,7 +3,6 @@
 import React from "react";
 import ActivityTimeline from "./ActivityTimeline";
 
-// ✅ 追加: refreshKeyプロップを受け取る
 const TaskDetails = ({
   task,
   users,
@@ -67,7 +66,6 @@ const TaskDetails = ({
         <ActivityTimeline
           type="task"
           targetId={task._id}
-          // ✅ 修正: task._id ではなく、新しいrefreshKeyを渡す
           refreshKey={refreshKey}
         />
       </div>

@@ -9,7 +9,6 @@ const PasswordReset = () => {
   const [isError, setIsError] = useState(false);
   const [emailError, setEmailError] = useState("");
 
-  // メールアドレスの形式をチェックする正規表現
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleEmailChange = (e) => {

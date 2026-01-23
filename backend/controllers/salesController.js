@@ -15,7 +15,7 @@ const recordActivity = async (
   description,
   customerId = null,
   salesId = null,
-  assignedUserId // ✅ 追加: assignedUserIdを引数として受け取る
+  assignedUserId 
 ) => {
   try {
     const activity = new Activity({
@@ -26,7 +26,7 @@ const recordActivity = async (
       description,
       customerId,
       salesId,
-      assignedUserId, // ✅ 修正: assignedUserIdをモデルにセット
+      assignedUserId, 
     });
     await activity.save();
   } catch (error) {
@@ -64,7 +64,7 @@ exports.createSales = asyncHandler(async (req, res) => {
     `新しい案件「${dealName}」を作成しました。`,
     customerId,
     createdSales._id,
-    assignedUserId // ✅ 修正: assignedUserIdを渡す
+    assignedUserId 
   );
 
   res.status(201).json(createdSales);
@@ -125,7 +125,7 @@ exports.updateSales = asyncHandler(async (req, res) => {
       changes.join("、"),
       updatedSales.customerId,
       updatedSales._id,
-      assignedUserId // ✅ 修正: assignedUserIdを渡す
+      assignedUserId 
     );
   }
 

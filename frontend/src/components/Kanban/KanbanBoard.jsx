@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { authorizedRequest } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 
-const STATUSES = ["todo", "in_progress", "done"]; // タスクのstatusに合わせる
+const STATUSES = ["todo", "in_progress", "done"]; 
 
 // Card コンポーネント
 const Card = memo(function Card({ task, provided, snapshot }) {
@@ -138,7 +138,6 @@ const KanbanBoard = () => {
     try {
       const tasks = await authorizedRequest("GET", "/tasks");
 
-      // タスクに assignedName と companyName を追加
       const tasksWithNames = tasks.map((task) => ({
         ...task,
         assignedName: usersMap[task.assignedTo] || "未割り当て",

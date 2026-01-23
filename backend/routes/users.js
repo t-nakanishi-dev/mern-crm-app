@@ -16,11 +16,11 @@ const {
   updateUserRole,
   getUsersBasic,
   toggleUserDisabledStatus,
-  getUserById, // ✅ 追加: 新しいコントローラー関数をインポート
+  getUserById, 
 } = require("../controllers/userController");
 
 // 🔹 初回登録（MongoDBにユーザー登録）
-// ✅ 修正: 他のルートより前に配置し、verifyFirebaseTokenをスキップさせる
+// 他のルートより前に配置し、verifyFirebaseTokenをスキップさせる
 router.post("/register", registerUser);
 
 // ----------------------------------------------------

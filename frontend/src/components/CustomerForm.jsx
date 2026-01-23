@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { authorizedRequest } from "../services/authService"; // 修正後のauthorizedRequestをインポート
+import { authorizedRequest } from "../services/authService"; 
 
 const CustomerForm = ({ editingCustomer, onSuccess, onCancelEdit }) => {
-  const { user } = useAuth(); // token は authorizedRequest に直接渡す必要がなくなったため、ここでは不要（使うなら残す）
+  const { user } = useAuth(); 
 
   const [formData, setFormData] = useState({
     name: "",
@@ -76,7 +76,6 @@ const CustomerForm = ({ editingCustomer, onSuccess, onCancelEdit }) => {
 
     try {
       if (editingCustomer) {
-        // ✅ 修正: token 引数を削除
         await authorizedRequest(
           "PUT",
           `/customers/${editingCustomer._id}`,
@@ -84,7 +83,6 @@ const CustomerForm = ({ editingCustomer, onSuccess, onCancelEdit }) => {
         );
         setSuccess("顧客情報を更新しました！");
       } else {
-        // ✅ 修正: token 引数を削除
         await authorizedRequest("POST", "/customers", dataToSend);
         setSuccess("新しい顧客を登録しました！");
       }

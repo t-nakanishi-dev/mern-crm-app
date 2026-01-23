@@ -6,9 +6,7 @@ import { createPortal } from "react-dom";
 const CustomModal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
 
-  // モーダルの外側をクリックしたときにonCloseを呼び出す
   const handleOverlayClick = (e) => {
-    // クリックされた要素がモーダルコンテンツ自体でないことを確認
     if (e.target === e.currentTarget) {
       onClose();
     }

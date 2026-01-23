@@ -54,11 +54,10 @@ function Register() {
       // バックエンドにユーザー登録
       await registerUserInBackend(idToken, userData);
 
-      // ✅ 自動でダッシュボードへ遷移
       navigate("/dashboard");
     } catch (error) {
       console.error("❌ Firebase 登録エラー:", error);
-      setError(error.message); // エラー表示
+      setError(error.message); 
     }
   };
 

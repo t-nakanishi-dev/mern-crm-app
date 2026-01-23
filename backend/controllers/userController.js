@@ -6,7 +6,6 @@ const admin = require("../firebaseAdmin");
 
 // 🔹 ユーザー新規登録（Firebase認証済みのユーザーをMongoDBに登録）
 const registerUser = asyncHandler(async (req, res) => {
-  console.log("📥 [registerUser] 新規登録リクエスト受信:", req.body);
 
   const { uid, email, displayName } = req.body;
 
@@ -14,13 +13,8 @@ const registerUser = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "必須情報が不足しています。" });
   }
 
-  console.log("🔑 Firebase UID:", uid);
-  console.log("📧 Email:", email);
-  console.log("📝 Display Name:", displayName);
-
   const existingUser = await User.findOne({ uid: uid });
   if (existingUser) {
-    console.log("⚠️ 既に登録済みのユーザー:", existingUser.email);
     return res
       .status(200)
       .json({ message: "既に登録済み", user: existingUser });
@@ -34,7 +28,6 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   const savedUser = await newUser.save();
-  console.log("✅ 新規ユーザー登録完了:", savedUser._id);
 
   res.status(201).json({ message: "登録完了", user: savedUser });
 });
@@ -155,20 +148,10 @@ const updateUserRole = asyncHandler(async (req, res) => {
   }
 
   try {
-    // 1. Firebase Custom Claims を更新（← これが抜けていた！）
     await admin.auth().setCustomUserClaims(id, { role });
-    console.log(
-      `[updateUserRole] Custom Claims 更新成功: UID=${id} → role=${role}`
-    );
 
-    // 設定確認ログ（デバッグ用・後で削除可）
     const updatedFirebaseUser = await admin.auth().getUser(id);
-    console.log(
-      "[updateUserRole] 更新後のClaims:",
-      updatedFirebaseUser.customClaims
-    );
 
-    // 2. MongoDB の role を更新
     const user = await User.findOneAndUpdate(
       { uid: id },
       { role },
@@ -191,7 +174,7 @@ const updateUserRole = asyncHandler(async (req, res) => {
   }
 });
 
-// ✅ ユーザーの有効化/無効化を切り替える関数（既にFirebase対応済み）
+// ✅ ユーザーの有効化/無効化を切り替える関数
 const toggleUserDisabledStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { disabled } = req.body;

@@ -1,4 +1,4 @@
-// src/components/ContactList.jsx (修正版)
+// src/components/ContactList.jsx
 
 import { useState, useEffect } from "react";
 import { authorizedRequest } from "../services/authService";
@@ -16,7 +16,6 @@ const ContactList = ({ onEdit, refreshTrigger, users }) => {
 
   useEffect(() => {
     const fetchContacts = async () => {
-      console.log("📄 ContactList: APIに問い合わせ一覧をリクエストします...");
       try {
         setLoading(true);
         const response = await authorizedRequest("GET", "/contacts");

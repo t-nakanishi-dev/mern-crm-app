@@ -1,4 +1,4 @@
-// backend/controllers/notificationController.js (修正案)
+// backend/controllers/notificationController.js 
 const asyncHandler = require("express-async-handler");
 const Notification = require("../models/Notification");
 

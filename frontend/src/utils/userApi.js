@@ -13,8 +13,6 @@ const usersApi = api.create({
  */
 export const getUsers = async () => {
   try {
-    // このAPIはクエリパラメータが必要な場合があるため、
-    // タスクリストの取得には getUsersBasic を使用することを推奨
     const response = await usersApi.get("/");
     return response.data;
   } catch (error) {

@@ -14,10 +14,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <AuthProvider>
       <NotificationProvider>
         {" "}
-        {/* ✅ 追加 */}
         <App />
       </NotificationProvider>{" "}
-      {/* ✅ 追加 */}
     </AuthProvider>
   </BrowserRouter>
   // </React.StrictMode>

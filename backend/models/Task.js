@@ -36,13 +36,13 @@ const taskSchema = new mongoose.Schema(
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer", // 'Customer'モデルを参照
-      required: true, // ✅ 修正: 顧客は必須とする
+      required: true, 
     },
     // ✅ 追加: タスクに関連付けられた案件ID
     sales: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Sales", // 'Sales'モデルを参照
-      required: false, // 案件に紐づかないタスクもあるため必須ではない
+      required: false, 
     },
     // タスクの期日
     dueDate: {

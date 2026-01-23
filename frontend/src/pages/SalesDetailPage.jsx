@@ -14,7 +14,6 @@ const SalesDetailPage = () => {
   const { user, token } = useAuth();
   const [sale, setSale] = useState(null);
   const [customer, setCustomer] = useState(null);
-  // ✅ 不要なactivitiesステートを削除
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({});
@@ -28,7 +27,6 @@ const SalesDetailPage = () => {
       const res = await authorizedRequest("GET", `/sales/${saleId}`);
       setSale(res.sales);
       setCustomer(res.customer);
-      // ✅ 案件に紐づくactivitiesはActivityTimelineコンポーネントが取得するため、ここでは不要
     } catch (err) {
       console.error("案件情報の取得に失敗しました:", err);
       const errorMessage =
@@ -177,7 +175,6 @@ const SalesDetailPage = () => {
               <p className="whitespace-pre-wrap">{sale?.notes}</p>
             </div>
           </div>
-          {/* ✅ 修正: ActivityTimelineコンポーネントをここに配置 */}
           <div className="max-w-4xl mx-auto">
             <ActivityTimeline
               type="sales"

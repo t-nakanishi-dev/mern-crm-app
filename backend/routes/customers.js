@@ -11,13 +11,12 @@ const {
   updateCustomer,
   deleteCustomer,
   getCustomerById,
-  // 💡 追加: ステータス別顧客取得とステータス更新のコントローラー
   getCustomersByStatus,
   updateCustomerStatus,
 } = require("../controllers/customerController");
 
 const {
-  getTasksByCustomer, // 💡 追加: 顧客別タスク取得のコントローラー
+  getTasksByCustomer, 
 } = require("../controllers/taskController");
 
 // 🔐 認証ミドルウェアをすべてのルートに適用

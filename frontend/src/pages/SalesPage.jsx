@@ -6,7 +6,7 @@ import { authorizedRequest } from "../services/authService";
 import Modal from "../components/Modal";
 import { Link } from "react-router-dom";
 import SalesForm from "../components/SalesForm";
-import StatusBadge from "../components/StatusBadge"; // ← 追加
+import StatusBadge from "../components/StatusBadge"; 
 import { SALES_STATUS } from "../constants/statusConfig";
 
 const SalesPage = () => {

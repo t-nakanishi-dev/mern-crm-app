@@ -10,7 +10,7 @@ const {
   getSalesById,
   getAllSalesByUser,
   getSalesByCustomer,
-  getSalesSummary, // ✅ 追加: ダッシュボード用サマリーを取得するコントローラーをインポート
+  getSalesSummary, 
 } = require("../controllers/salesController");
 
 // 🔐 認証ミドルウェアをすべてのルートに適用

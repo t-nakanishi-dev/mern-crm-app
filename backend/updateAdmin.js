@@ -2,8 +2,8 @@
 
 const admin = require("firebase-admin");
 const dotenv = require("dotenv");
-const mongoose = require("mongoose"); // ✅ Mongooseをインポート
-const User = require("./models/User"); // ✅ Userモデルをインポート
+const mongoose = require("mongoose"); 
+const User = require("./models/User"); 
 
 // .envファイルを読み込む
 dotenv.config();
@@ -54,9 +54,6 @@ async function setAdminClaimAndRole() {
     if (user) {
       user.role = "admin";
       await user.save();
-      console.log(
-        `✅ ユーザー ${targetUid} のMongoDBの役割を 'admin' に更新しました。`
-      );
     } else {
       console.error("❌ MongoDBにユーザーが見つかりませんでした。");
     }

@@ -21,7 +21,6 @@ ChartJS.register(
 );
 
 const CustomerBarChart = ({ data }) => {
-  console.log("📊 CustomerBarChart data:", data);
   const chartData = {
     labels: data.map((item) => item.name),
     datasets: [

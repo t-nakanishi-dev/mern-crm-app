@@ -15,8 +15,8 @@ const SalesForm = ({ editingSale, onSuccess, onCancelEdit }) => {
     notes: "",
     dueDate: "",
   });
-  const [message, setMessage] = useState(""); // 新規追加：成功・エラー表示用
-  const [messageType, setMessageType] = useState("success"); // success or error
+  const [message, setMessage] = useState(""); 
+  const [messageType, setMessageType] = useState("success"); 
 
   // 顧客リストを取得
   const fetchCustomers = useCallback(async () => {

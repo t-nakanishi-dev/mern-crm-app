@@ -60,7 +60,7 @@ exports.createContact = async (req, res) => {
       contactEmail,
       contactPhone: contactPhone || "",
       content,
-      responseStatus: responseStatus || "未対応", // ✅ 修正: リクエストからステータスを取得、なければ"未対応"
+      responseStatus: responseStatus || "未対応", 
       assignedUserId,
     });
 
@@ -96,7 +96,7 @@ exports.updateContact = async (req, res) => {
       contactPhone,
       responseStatus,
       memo,
-      assignedUserId, // ← 追加
+      assignedUserId,
     } = req.body;
 
     if (!contactName || !content) {

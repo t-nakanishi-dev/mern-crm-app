@@ -7,7 +7,6 @@ import { getApp } from "firebase/app";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Firebaseアプリを初期化
-// NOTE: main.jsxなどでFirebaseを初期化していることが前提
 const firebaseApp = getApp();
 const auth = getAuth(firebaseApp);
 
@@ -32,7 +31,7 @@ authApi.interceptors.request.use(async (config) => {
   }
 
   try {
-    // Firebase SDKが自動でトークンの有効期限をチェック・更新してくれる
+    // Firebase SDKが自動でトークンの有効期限をチェック・更新
     const idToken = await user.getIdToken();
     config.headers.Authorization = `Bearer ${idToken}`;
     console.log(

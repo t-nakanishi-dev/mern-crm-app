@@ -6,7 +6,6 @@ import { useAuth } from "../context/AuthContext";
 
 const ActivityLog = () => {
   // アクティビティのステート管理
-  // ここでは全アクティビティを保持します
   const [allActivities, setAllActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,9 +22,6 @@ const ActivityLog = () => {
    */
   const fetchAllActivities = useCallback(async () => {
     if (!isAdmin || !token) {
-      console.log(
-        "アクティビティログ取得スキップ：管理者権限またはトークンがありません。"
-      );
       setLoading(false);
       setError("管理者権限が必要です。");
       return;

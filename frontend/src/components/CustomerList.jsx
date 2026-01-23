@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { authorizedRequest } from "../services/authService";
 import CustomerForm from "./CustomerForm";
 import { Link } from "react-router-dom";
-import StatusBadge from "./StatusBadge"; // ← 追加
+import StatusBadge from "./StatusBadge"; 
 import { SALES_STATUS } from "../constants/statusConfig";
 
 const CustomerList = () => {

@@ -40,7 +40,7 @@ const salesSchema = new Schema(
     // ✅ dueDateフィールドを追加
     dueDate: {
       type: Date,
-      required: false, // 必須ではないとします
+      required: false, 
     },
   },
   {

@@ -51,7 +51,6 @@ const recordActivity = async (
  * @desc 新規タスク作成
  */
 exports.createTask = asyncHandler(async (req, res) => {
-  console.log("📝 createTask start", req.body);
 
   const {
     title,
@@ -77,7 +76,6 @@ exports.createTask = asyncHandler(async (req, res) => {
   });
 
   const task = await newTask.save();
-  console.log("✅ Created task with status:", task.status);
 
   const createdByUser = await User.findOne({ uid: createdBy });
   const assignedUser = await User.findOne({ uid: assignedTo });
@@ -129,12 +127,6 @@ exports.createTask = asyncHandler(async (req, res) => {
  * @desc タスク更新（権限を柔軟に分岐）
  */
 exports.updateTask = asyncHandler(async (req, res) => {
-  console.log("📝 updateTask start", {
-    taskId: req.params.id,
-    updaterUid: req.user.uid,
-    updaterRole: req.user.role,
-    requestBody: req.body,
-  });
 
   const task = await Task.findById(req.params.id);
 
@@ -159,11 +151,9 @@ exports.updateTask = asyncHandler(async (req, res) => {
   if (isOnlyStatusUpdate) {
     // ステータスだけ変更 → 作成者・担当者・管理者 ならOK
     canUpdate = isCreator || isAssignee || isAdmin;
-    console.log("ステータス単独更新判定 → canUpdate:", canUpdate);
   } else {
     // その他の項目を含む変更 → 作成者または管理者 のみOK
     canUpdate = isCreator || isAdmin;
-    console.log("フル編集判定 → canUpdate:", canUpdate);
   }
 
   if (!canUpdate) {
@@ -229,7 +219,6 @@ exports.updateTask = asyncHandler(async (req, res) => {
  * @desc タスク削除（作成者のみ）
  */
 exports.deleteTask = asyncHandler(async (req, res) => {
-  console.log("📝 deleteTask start:", req.params.id);
 
   const task = await Task.findById(req.params.id);
 

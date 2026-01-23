@@ -16,11 +16,8 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log("🔄 onAuthStateChanged fired:", currentUser);
-
       if (currentUser) {
         try {
-          // ★強化ポイント1★ まずトークンを強制的に更新（古いトークンを破棄）
           await currentUser.getIdToken(true);
           console.log("✅ トークン強制リフレッシュ完了（Custom Claims反映用）");
 
@@ -46,13 +43,6 @@ const AuthProvider = ({ children }) => {
           setToken(freshIdToken);
           setIsAdmin(!!adminClaim); // booleanに変換
 
-          console.log("✅ AuthContext: ユーザーがログインしました", {
-            uid: currentUser.uid,
-            displayName: currentUser.displayName,
-            email: currentUser.email,
-            isAdmin: adminClaim,
-            claims,
-          });
         } catch (error) {
           console.error(
             "❌ AuthContext: IDトークン/claims の取得に失敗しました",
@@ -66,16 +56,13 @@ const AuthProvider = ({ children }) => {
         setUser(null);
         setToken(null);
         setIsAdmin(false);
-        console.log("❌ AuthContext: ユーザーはログアウトしました");
       }
 
       setLoading(false);
       setIsAuthReady(true);
-      console.log("loading:", false, "isAuthReady:", true);
     });
 
     return () => {
-      console.log("🔚 onAuthStateChanged listener解除");
       unsubscribe();
     };
   }, []);

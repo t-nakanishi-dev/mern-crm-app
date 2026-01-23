@@ -16,7 +16,6 @@ const ContactsPage = () => {
     const fetchUsers = async () => {
       try {
         const res = await authorizedRequest("get", "/users/basic");
-        // 🚨 修正箇所: レスポンスがオブジェクト形式であるため、res.usersを抽出
         const usersData = res.users || [];
         setUsers(usersData);
         console.log("✅ Users取得成功:", usersData);
@@ -56,7 +55,7 @@ const ContactsPage = () => {
           contact={editingContact}
           onSuccess={handleSuccess}
           onCancel={handleCancel}
-          users={users} // ← ここを追加
+          users={users} 
         />
       )}
 

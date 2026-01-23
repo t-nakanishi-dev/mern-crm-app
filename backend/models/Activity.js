@@ -45,15 +45,15 @@ const activitySchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Task",
       index: true,
-    }, // ✅ 修正: 活動が紐づく担当ユーザーのIDを追加
+    }, 
     assignedUserId: {
       type: String,
       required: false,
       index: true,
-    }, // 変更前のデータ（任意で追加。差分を記録したい場合に便利）
+    }, // 変更前のデータ
     before: {
       type: Schema.Types.Mixed,
-    }, // 変更後のデータ（任意で追加。差分を記録したい場合に便利）
+    }, // 変更後のデータ
     after: {
       type: Schema.Types.Mixed,
     },

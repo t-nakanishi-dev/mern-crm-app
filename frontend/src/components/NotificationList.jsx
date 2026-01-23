@@ -5,14 +5,14 @@ import {
   markNotificationAsRead,
 } from "../utils/notification";
 import { useAuth } from "../context/AuthContext";
-import { useNotifications } from "../context/NotificationContext"; // ✅ 追加
+import { useNotifications } from "../context/NotificationContext"; 
 
 /**
  * 通知のドロップダウンリストを表示するコンポーネント
  */
 const NotificationList = () => {
   const { user } = useAuth();
-  const { refreshNotifications } = useNotifications(); // ✅ 追加
+  const { refreshNotifications } = useNotifications(); 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,7 +34,7 @@ const NotificationList = () => {
 
   useEffect(() => {
     fetchNotifications();
-  }, [user, refreshNotifications]); // ✅ 依存関係にrefreshNotificationsを追加
+  }, [user, refreshNotifications]); 
 
   const handleNotificationClick = async (notificationId) => {
     try {

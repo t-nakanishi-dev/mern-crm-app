@@ -12,7 +12,6 @@ router.use(verifyFirebaseToken);
 router.get(
   "/user",
   (req, res, next) => {
-    console.log("📝 GET /activities/user called by:", req.user.uid);
     next();
   },
   activityController.getActivitiesByUser
@@ -22,7 +21,6 @@ router.get(
 router.get(
   "/all",
   (req, res, next) => {
-    console.log("📝 GET /activities/all called by:", req.user.uid);
     next();
   },
   activityController.getAllActivities
@@ -32,10 +30,6 @@ router.get(
 router.get(
   "/customer/:customerId",
   (req, res, next) => {
-    console.log(
-      `📝 GET /activities/customer/${req.params.customerId} called by:`,
-      req.user.uid
-    );
     next();
   },
   activityController.getActivitiesByCustomer
@@ -45,10 +39,6 @@ router.get(
 router.get(
   "/sales/:saleId",
   (req, res, next) => {
-    console.log(
-      `📝 GET /activities/sales/${req.params.saleId} called by:`,
-      req.user.uid
-    );
     next();
   },
   activityController.getActivitiesBySaleId
@@ -58,10 +48,6 @@ router.get(
 router.get(
   "/tasks/:taskId",
   (req, res, next) => {
-    console.log(
-      `📝 GET /activities/tasks/${req.params.taskId} called by:`,
-      req.user.uid
-    );
     next();
   },
   activityController.getActivitiesByTask
