@@ -1,22 +1,28 @@
 # 📊 CRM App – 顧客管理アプリ（MERN Stack）
 
 ## 🔗 デプロイURL
-https://crm-app.onrender.com  
+https://mern-crm-app-frontend-gf1j.onrender.com
 ※スマートフォン・PCの両方に対応しています。
 
 ## 🔑 テストログイン
-Email: test@gmail.com  
-Password: test
+※ デモ用アカウントのため、データは予告なく変更・削除される場合があります。
+
+Email: t.nakanishi.dev@gmail.com  
+Password: t.nakanishi.dev
 
 ## 📸 スクリーンショット
-**顧客一覧ページ**  
-（スクリーンショット画像をここに追加）
 
-**顧客詳細ページ**  
-（スクリーンショット画像をここに追加）
+### 顧客一覧ページ
+顧客の一覧表示・検索・ステータス確認が可能です。  
+![顧客一覧](./screenshots/customers-list.png)
 
-**通知ドロップダウン**  
-（スクリーンショット画像をここに追加）
+### 顧客詳細ページ
+顧客情報に紐づく案件・タスク・活動履歴をまとめて確認できます。  
+![顧客詳細](./screenshots/customer-detail.png)
+
+### 通知ドロップダウン
+未読通知をリアルタイムで確認できます。  
+![通知ドロップダウン](./screenshots/notification-dropdown.png)
 
 ## 📝 アプリ概要
 このアプリは、顧客・案件・タスク・活動履歴・通知を一元管理できるCRM（顧客管理）Webアプリです。  
@@ -43,5 +49,5 @@ Password: test
 - ESLint + Prettierでのコードスタイル統一  
 
 ## 👤 作者情報
-- 名前：PiyoCode324  
-- GitHub：[https://github.com/PiyoCode324](https://github.com/PiyoCode324)
+- 名前：t-nakanishi-dev
+- GitHub：https://github.com/t-nakanishi-dev
