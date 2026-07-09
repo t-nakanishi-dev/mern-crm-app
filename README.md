@@ -7,8 +7,8 @@ https://mern-crm-app-frontend-gf1j.onrender.com
 ## 🔑 テストログイン
 ※ デモ用アカウントのため、データは予告なく変更・削除される場合があります。
 
-Email: t.nakanishi.dev@gmail.com  
-Password: t.nakanishi.dev
+Email:test123@gmail.com　
+Password:test123
 
 ## 📸 スクリーンショット
 
